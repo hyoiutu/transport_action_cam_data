@@ -7,7 +7,7 @@ if [ $1 = "test" ]; then
   files=($(ls ./test_source/*.MP4))
 
   rm -rf "${bkups_dir}/*"
-elif [ $1 = "prod"]; then
+elif [ $1 = "prod" ]; then
   echo "this is procution mode!"
 
   bkups_dir="/Volumes/Elements/ActionCam"
@@ -21,6 +21,7 @@ fi
 
 for full_path in $files; do
   creation_date=$(ffprobe -loglevel quiet ${full_path} -show_streams | grep -m1 "TAG:creation_time=" | sed -E 's/TAG:creation_time=(20[0-9][0-9]-[01][0-9]-[0-3][0-9]).*/\1/g')
+  [ -z ${creation_date} ] && echo "creation_date is undefined" && exit 1
   echo "creation date is ${creation_date}"
 
   file_name=$(echo ${full_path} | sed -E 's/.*(MAH[0-9]*\.MP4)/\1/g')
