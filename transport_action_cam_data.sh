@@ -20,7 +20,7 @@ fi
 
 
 for full_path in $files; do
-  creation_datetime_gmt=$(ffprobe -loglevel quiet ${full_path} -show_streams | grep -m1 "TAG:creation_time=" | sed -E 's/TAG:creation_time=(20[0-9][0-9]-[01][0-9]-[0-3][0-9]T[0-1][0-9]:[0-5][0-9]:[0-5][0-9]\.000000Z).*/\1/g')
+  creation_datetime_gmt=$(ffprobe -loglevel quiet ${full_path} -show_streams | grep -m1 "TAG:creation_time=" | sed -E 's/TAG:creation_time=(20[0-9][0-9]-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]\.000000Z).*/\1/g')
   [ -z ${creation_datetime_gmt} ] && echo "creation_datetime_gmt is undefined" && exit 1
   creation_date_jst=$(date -v+9H -j -f "%Y-%m-%dT%H:%M:%S.000000Z" "${creation_datetime_gmt}" +"%Y-%m-%d")
   echo "creation date is ${creation_date_jst}"
