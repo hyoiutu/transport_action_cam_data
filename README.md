@@ -8,6 +8,13 @@ dateコマンドがMacとLinuxで仕様が違うのでMac以外だと動かな�
 ## 必要なセットアップ
 pvコマンド使っているのでインストールする
 
+## 動かし方
+```shell
+./transport_action_cam_data.sh test # テストの場合
+./transport_action_cam_data.sh prod # 本番の場合
+
+```
+
 ```shell
 brew install pv
 ```
