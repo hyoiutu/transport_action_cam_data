@@ -1,41 +1,77 @@
 #!/bin/zsh
 
-if [ $1 = "test"  -o $1 = "test_sony" ]; then
-  echo "this is action cam test mode!"
+# 関数定義
+## モードに存在するがパターンとしてcaseで分岐していないものをチェックする関数
+check_mode_definition() {
+  local current_mode="$1"
+  shift
+  local modes=("$@")
 
-  bkups_dir="./test_destination"
-  files=($(ls ./sony_test_source/*.MP4))
-  sed_pattern='s/.*(MAH[0-9]*\.MP4)/\1/g'
+  for mode in "${modes[@]}"; do
+    if [ "$current_mode" = "$mode" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
 
-  rm -rf "${bkups_dir}/*"
-elif [ $1 = "test_dji" ]; then
-  echo "this is dji test mode!"
+# メイン関数
+test_destination_dir="./test_destination"
+rm -rf "${test_destination_dir}/*"
 
-  bkups_dir="./test_destination"
-  files=($(ls ./dji_test_source/*.MP4))
-  sed_pattern='s/.*(DJI_[0-9]*_[0-9]{4}_D\.MP4)/\1/g'
+modes=('test' 'test_sony' 'test_dji' 'sony' 'dji')
 
-  rm -rf "${bkups_dir}/*"
-elif [ $1 = "sony" ]; then
-  echo "transporting action cam files!"
+case "$1" in
 
-  bkups_dir="/Volumes/Elements/ActionCam"
-  files=($(ls /Volumes/Untitled/MP_ROOT/100ANV01/*.MP4))
-  sed_pattern='s/.*(MAH[0-9]*\.MP4)/\1/g'
-elif [ $1 = "dji" ]; then
-  echo "transporting dji files!"
+  test|test_sony)
+    echo "this is action cam test mode!"
 
-  bkups_dir="/Volumes/Elements/DJI"
-  files=($(ls /Volumes/Untitled/DCIM/DJI_001/*.MP4))
-  sed_pattern='s/.*(DJI_[0-9]*_[0-9]{4}_D\.MP4)/\1/g'
-else
-  echo "arg must be 'test', 'test_sony', 'test_dji', 'sony' or 'dji'."
-  exit 1
-fi
+    bkups_dir="./test_destination"
+    files=($(ls ./sony_test_source/*.MP4))
+    sed_pattern='s/.*(MAH[0-9]*\.MP4)/\1/g'
+    ;;
 
+  test_dji)
+    echo "this is dji test mode!"
 
+    bkups_dir="./test_destination"
+    files=($(ls ./dji_test_source/*.MP4))
+    sed_pattern='s/.*(DJI_[0-9]*_[0-9]{4}_D\.MP4)/\1/g'
+    ;;
 
+  sony)
+    echo "transporting action cam files!"
+
+    bkups_dir="/Volumes/Elements/ActionCam"
+    files=($(ls /Volumes/Untitled/MP_ROOT/100ANV01/*.MP4))
+    sed_pattern='s/.*(MAH[0-9]*\.MP4)/\1/g'
+    ;;
+
+  dji)
+    echo "transporting dji files!"
+
+    bkups_dir="/Volumes/Elements/DJI"
+    files=($(ls /Volumes/Untitled/DCIM/DJI_001/*.MP4))
+    sed_pattern='s/.*(DJI_[0-9]*_[0-9]{4}_D\.MP4)/\1/g'
+    ;;
+
+  *)
+    if check_mode_definition "$1" "${modes[@]}"; then
+      echo "$1 is existing in modes. but is not defined"
+    else
+      echo "The argument must be one of the following:"
+      for mode in "$modes[@]"; do
+        echo "  $mode"
+      done
+    fi
+    exit 1
+    ;;
+esac
+
+echo "===================    transporting start    ==================="
 for full_path in $files; do
+  echo "------------------ $full_path is transporting now ------------------"
+
   creation_datetime_gmt=$(ffprobe -loglevel quiet ${full_path} -show_streams | grep -m1 "TAG:creation_time=" | sed -E 's/TAG:creation_time=(20[0-9][0-9]-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]\.000000Z).*/\1/g')
   [ -z ${creation_datetime_gmt} ] && echo "creation_datetime_gmt is undefined" && exit 1
   creation_date_jst=$(date -v+9H -j -f "%Y-%m-%dT%H:%M:%S.000000Z" "${creation_datetime_gmt}" +"%Y-%m-%d")
@@ -49,6 +85,8 @@ for full_path in $files; do
   echo "${file_name} is copying..."
   pv $full_path > ${destination}/${file_name}
   echo "${file_name} copy is done."
+
+  echo "------------------ $full_path is done ------------------"
 done
 
 # date -v+9H -j -f "%Y-%m-%dT%H:%M:%S.000000Z" "2022-08-15T23:39:17.000000Z" +"%Y-%m-%d"
