@@ -1,3 +1,4 @@
 test_destination/
-test_source/
+sony_test_source/
+dji_test_source/
 .DS_Store
