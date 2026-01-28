@@ -17,42 +17,43 @@ check_mode_definition() {
 
 # メイン関数
 test_destination_dir="./test_destination"
-rm -rf "${test_destination_dir}/*"
+rm -rf ${test_destination_dir}/*
 
 modes=('test' 'test_sony' 'test_dji' 'sony' 'dji')
+ext_regex="MP4|JPG"
 
 case "$1" in
 
   test|test_sony)
     echo "this is action cam test mode!"
-
+    
+    dir_path="./sony_test_source"
     bkups_dir="./test_destination"
-    files=(./sony_test_source/*.MP4)
-    sed_pattern='s/.*(MAH[0-9]*\.MP4)/\1/g'
+    sed_pattern="s/.*(MAH[0-9]*\.(${ext_regex}))/\1/Ig"
     ;;
 
   test_dji)
     echo "this is dji test mode!"
 
+    dir_path="./dji_test_source"
     bkups_dir="./test_destination"
-    files=(./dji_test_source/*.MP4)
-    sed_pattern='s/.*(DJI_[0-9]*_[0-9]{4}_D\.MP4)/\1/g'
+    sed_pattern="s/.*(DJI_[0-9]*_[0-9]{4}_D\.(${ext_regex}))/\1/Ig"
     ;;
 
   sony)
     echo "transporting action cam files!"
 
+    dir_path="/Volumes/Untitled/MP_ROOT/100ANV01"
     bkups_dir="/Volumes/Elements/ActionCam"
-    files=(/Volumes/Untitled/MP_ROOT/100ANV01/*.MP4)
-    sed_pattern='s/.*(MAH[0-9]*\.MP4)/\1/g'
+    sed_pattern="s/.*(MAH[0-9]*\.(${ext_regex}))/\1/Ig"
     ;;
 
   dji)
     echo "transporting dji files!"
 
+    dir_path="/Volumes/Untitled/DCIM/DJI_001"
     bkups_dir="/Volumes/Elements/DJI"
-    files=(/Volumes/Untitled/DCIM/DJI_001/*.MP4)
-    sed_pattern='s/.*(DJI_[0-9]*_[0-9]{4}_D\.MP4)/\1/g'
+    sed_pattern="s/.*(DJI_[0-9]*_[0-9]{4}_D\.(${ext_regex}))/\1/Ig"
     ;;
 
   *)
@@ -68,13 +69,37 @@ case "$1" in
     ;;
 esac
 
+setopt nullglob
+video_files=(${dir_path}/*.{MP4,mp4})
+image_files=(${dir_path}/*.{JPG,jpg})
+unsetopt nullglob
+
 echo "===================    transporting start    ==================="
-for full_path in $files; do
+for full_path in $video_files; do
   echo "------------------ $full_path is transporting now ------------------"
 
   creation_datetime_gmt=$(ffprobe -loglevel quiet ${full_path} -show_streams | grep -m1 "TAG:creation_time=" | sed -E 's/TAG:creation_time=(20[0-9][0-9]-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]\.000000Z).*/\1/g')
   [ -z ${creation_datetime_gmt} ] && echo "creation_datetime_gmt is undefined" && exit 1
   creation_date_jst=$(date -v+9H -j -f "%Y-%m-%dT%H:%M:%S.000000Z" "${creation_datetime_gmt}" +"%Y-%m-%d")
+  echo "creation date is ${creation_date_jst}"
+
+  file_name=$(echo ${full_path} | sed -E "$sed_pattern")
+  destination="${bkups_dir}/${creation_date_jst}"
+  mkdir ${destination}
+  echo "dir is ${destination}"
+
+  echo "${file_name} is copying..."
+  pv $full_path > ${destination}/${file_name}
+  echo "${file_name} copy is done."
+
+  echo "------------------ $full_path is done ------------------"
+  
+done
+
+for full_path in $image_files; do
+  echo "------------------ $full_path is transporting now ------------------"
+
+  creation_date_jst=$(TZ=JST stat -f "%SB" -t "%Y-%m-%d"  ${full_path})
   echo "creation date is ${creation_date_jst}"
 
   file_name=$(echo ${full_path} | sed -E "$sed_pattern")
