@@ -27,7 +27,7 @@ case "$1" in
     echo "this is action cam test mode!"
 
     bkups_dir="./test_destination"
-    files=($(ls ./sony_test_source/*.MP4))
+    files=(./sony_test_source/*.MP4)
     sed_pattern='s/.*(MAH[0-9]*\.MP4)/\1/g'
     ;;
 
@@ -35,7 +35,7 @@ case "$1" in
     echo "this is dji test mode!"
 
     bkups_dir="./test_destination"
-    files=($(ls ./dji_test_source/*.MP4))
+    files=(./dji_test_source/*.MP4)
     sed_pattern='s/.*(DJI_[0-9]*_[0-9]{4}_D\.MP4)/\1/g'
     ;;
 
@@ -43,7 +43,7 @@ case "$1" in
     echo "transporting action cam files!"
 
     bkups_dir="/Volumes/Elements/ActionCam"
-    files=($(ls /Volumes/Untitled/MP_ROOT/100ANV01/*.MP4))
+    files=(/Volumes/Untitled/MP_ROOT/100ANV01/*.MP4)
     sed_pattern='s/.*(MAH[0-9]*\.MP4)/\1/g'
     ;;
 
@@ -51,7 +51,7 @@ case "$1" in
     echo "transporting dji files!"
 
     bkups_dir="/Volumes/Elements/DJI"
-    files=($(ls /Volumes/Untitled/DCIM/DJI_001/*.MP4))
+    files=(/Volumes/Untitled/DCIM/DJI_001/*.MP4)
     sed_pattern='s/.*(DJI_[0-9]*_[0-9]{4}_D\.MP4)/\1/g'
     ;;
 
