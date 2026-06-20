@@ -64,8 +64,9 @@
 
 ## 4. 技術スタック
 - **フレームワーク**: Electron
-- **フロントエンド**: HTML5, CSS3 (Vanilla CSSによるカスタムスタイリング), JavaScript (ESM / ES6+)
+- **フロントエンド**: React, HTML5, CSS3 (既存CSSによるカスタムスタイリング), JavaScript (ESM / ES6+)
+- **ビルドツール**: Vite
 - **メタデータ解析**:
   - 動画: `music-metadata` (純粋なJavaScript/Node.js実装で、外部バイナリ `ffprobe` のインストール不要)
   - 画像: `exif-parser` 等のNode.jsライブラリ
-- **アイコン**: Lucide Icons などのモダンなSVGアイコン
+- **アイコン**: `lucide-react` によるモダンなSVGアイコン

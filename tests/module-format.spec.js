@@ -19,6 +19,9 @@ test.describe('JSのモジュールに関するテスト', () => {
     const files = [
       'main.js',
       'preload.mjs',
+      'vite.config.js',
+      'src/main.jsx',
+      'src/App.jsx',
       'playwright.config.js',
       'tests/e2e.spec.js'
     ];

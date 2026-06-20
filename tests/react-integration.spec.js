@@ -1,0 +1,24 @@
+import { test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '..');
+
+test.describe('React integration', () => {
+  test('declares React dependencies and uses a React renderer entrypoint', () => {
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8')
+    );
+    const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
+
+    expect(packageJson.dependencies.react).toBeDefined();
+    expect(packageJson.dependencies['react-dom']).toBeDefined();
+    expect(packageJson.devDependencies.vite).toBeDefined();
+    expect(indexHtml).toContain('<div id="root"></div>');
+    expect(indexHtml).toContain('/src/main.jsx');
+    expect(fs.existsSync(path.join(rootDir, 'src', 'App.jsx'))).toBe(true);
+  });
+});

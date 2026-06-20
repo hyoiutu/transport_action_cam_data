@@ -26,7 +26,7 @@ function createWindow() {
     backgroundColor: '#1e1e2e'  // 起動時のチラつき防止用の背景色
   });
 
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
 
   // 必要に応じて開発者ツールを開く
   // mainWindow.webContents.openDevTools();

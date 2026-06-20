@@ -25,6 +25,7 @@
    ```bash
    npm start
    ```
+   `npm start` はViteでレンダラーをビルドしてからElectronを起動します。
 
 ---
 
@@ -67,5 +68,6 @@
 - **プレビュー機能**: スキャンした動画・画像のインライン再生・表示
 
 ## 開発メモ
+- レンダラーUIは React + Vite で構成し、エントリポイントは `src/main.jsx`、主要コンポーネントは `src/App.jsx` です。
 - JavaScript は ESM (`type: module`) として実行します。新規ファイルでは `import` / `export` を使用してください。
-- テストは `npm run test:e2e` で Playwright、`npm run test:unit` で Vitest を実行します。
+- `npm run build` でViteビルド、`npm run test:e2e` でビルド後にPlaywright、`npm run test:unit` でVitestを実行します。

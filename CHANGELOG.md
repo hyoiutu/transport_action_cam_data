@@ -14,6 +14,21 @@
 
 ## 変更履歴
 
+### [2026-06-20] React/Viteの導入
+* **修正の動機・概要**:
+  - レンダラーUIをVanilla JavaScriptからReactコンポーネントへ移行し、Viteでビルドする構成に変更。
+  - React導入を検証するPlaywrightテストを追加。
+* **各ファイルへの影響と変更内容**:
+  * **実装**:
+    * `package.json` / `package-lock.json`: `react`、`react-dom`、`lucide-react`、`vite`、`@vitejs/plugin-react` を追加し、`build` とビルド込みの `start` / `test:e2e` スクリプトに変更。
+    * `index.html`: Reactのルート要素と `src/main.jsx` のViteエントリに変更。
+    * `src/main.jsx` / `src/App.jsx` / `vite.config.js`: ReactレンダラーとVite設定を追加。
+    * `renderer.js`: React移行により削除。
+    * `main.js`: Electronの読み込み先をViteビルド成果物 `dist/index.html` に変更。
+    * `tests/react-integration.spec.js`: React依存とエントリポイントを検証するテストを追加。
+  * **README.md**: React/Vite構成、ビルド、起動、テストコマンドの説明を追記。
+  * **仕様書**: 技術スタックをReact/Viteおよび `lucide-react` 利用に更新。
+
 ### [2026-06-20] CommonJSからESMへの移行
 * **修正の動機・概要**:
   - プロジェクト全体のJavaScript実行形式をCommonJSからESMへ統一し、`import` / `export` ベースの実装に変更。
