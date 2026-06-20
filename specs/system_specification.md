@@ -70,3 +70,7 @@
   - 動画: `music-metadata` (純粋なJavaScript/Node.js実装で、外部バイナリ `ffprobe` のインストール不要)
   - 画像: `exif-parser` 等のNode.jsライブラリ
 - **アイコン**: `lucide-react` によるモダンなSVGアイコン
+
+## 5. 検証方針
+- **単体テスト**: Vitest を使用し、対象ファイルは `src/**/*.tests.*` に限定する。
+- **E2Eテスト**: Playwright を使用し、`tests/` 配下に配置する。

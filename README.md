@@ -71,3 +71,5 @@
 - レンダラーUIは React + Vite で構成し、エントリポイントは `src/main.jsx`、画面本体は `src/App.jsx`、再利用コンポーネントは `src/components/` に配置します。
 - JavaScript は ESM (`type: module`) として実行します。新規ファイルでは `import` / `export` を使用してください。
 - `npm run build` でViteビルド、`npm run test:e2e` でビルド後にPlaywright、`npm run test:unit` でVitestを実行します。
+- Vitest の対象は `src/**/*.tests.*` に限定します。単体テストは `src/` 配下に `*.tests.*` 形式で置いてください。
+- `tests/` 配下は Playwright の E2E テスト用です。
