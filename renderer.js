@@ -351,3 +351,6 @@ function showErrorToast(message) {
   console.error(message);
   alert(message);
 }
+
+// テスト用のグローバル露出
+window.updateDirectory = updateDirectory;

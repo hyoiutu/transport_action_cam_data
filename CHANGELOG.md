@@ -14,6 +14,17 @@
 
 ## 変更履歴
 
+### [2026-06-20] テスト環境（Vitest/Playwright）の導入およびE2Eテストの作成
+* **修正の動機・概要**:
+  - 技術スタックの変更やリファクタリングの準備として、単体テスト用の `vitest`、UIコンポーネント用の `testing library`、E2Eテスト用の `playwright` を導入。
+  - アプリ全体の仕様要件（フォルダ選択・スキャン・動画画像プレビュー・日付分類コピー・重複回避）を満たしているかを検証する Playwright E2E テストスイートを作成。
+* **各ファイルへの影響と変更内容**:
+  * **実装**:
+    * `package.json`: 依存関係に `vitest`、`@testing-library/dom`、`@testing-library/jest-dom`、`@playwright/test` を追加し、テスト実行スクリプトを登録。
+    * `renderer.js`: Playwrightのテスト用 evaluate コンテキストから呼び出せるよう、ディレクトリ更新処理 `updateDirectory` をグローバルに露出。
+  * **README.md**: 変更なし
+  * **仕様書**: 変更なし
+
 ### [2026-06-20] .gitignoreの最適化
 * **修正の動機・概要**: Electron、Node.js開発、パッケージング時（build/, dist/等）やOS固有の不要なファイルがGitにコミットされないよう、.gitignoreを整理・最適化。
 * **各ファイルへの影響と変更内容**:
