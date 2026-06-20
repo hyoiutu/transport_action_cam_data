@@ -9,3 +9,4 @@
   - 既存のコードを変更するときはRed-Green-Refactoringに則って行う
 - リファクタリングも同様にRed-Green-Refactoringに則って行う
   - またリファクタリングによる変更もCHANGELOG.mdに記載する
+- 人間からの指摘でコードを修正する場合、rules.mdに新しくルールを追加する
