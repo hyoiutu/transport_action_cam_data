@@ -1,0 +1,19 @@
+{
+  "name": "transport-action-cam-data",
+  "version": "1.0.0",
+  "description": "Transport action camera data sorted by date YYYY/MM/DD",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "exif-parser": "^0.1.12",
+    "music-metadata": "^7.14.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
