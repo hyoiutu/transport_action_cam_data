@@ -68,6 +68,6 @@
 - **プレビュー機能**: スキャンした動画・画像のインライン再生・表示
 
 ## 開発メモ
-- レンダラーUIは React + Vite で構成し、エントリポイントは `src/main.jsx`、主要コンポーネントは `src/App.jsx` です。
+- レンダラーUIは React + Vite で構成し、エントリポイントは `src/main.jsx`、画面本体は `src/App.jsx`、再利用コンポーネントは `src/components/` に配置します。
 - JavaScript は ESM (`type: module`) として実行します。新規ファイルでは `import` / `export` を使用してください。
 - `npm run build` でViteビルド、`npm run test:e2e` でビルド後にPlaywright、`npm run test:unit` でVitestを実行します。

@@ -8,14 +8,14 @@ import {
   Files,
   FolderInput,
   FolderOutput,
-  Image,
   ImageOff,
   Play,
   Square,
   UploadCloud,
-  Video,
   X
 } from 'lucide-react';
+import DropZone from './components/DropZone.jsx';
+import FileCard from './components/FileCard.jsx';
 
 const initialProgress = {
   status: '待機中...',
@@ -38,59 +38,6 @@ function formatBytes(bytes, decimals = 2) {
 function showErrorToast(message) {
   console.error(message);
   alert(message);
-}
-
-function DropZone({ id, icon: Icon, onClick, onDrop, disabled }) {
-  const [isDragOver, setIsDragOver] = useState(false);
-
-  return (
-    <div
-      className={`drop-zone${isDragOver ? ' dragover' : ''}`}
-      id={id}
-      onClick={onClick}
-      onDragOver={(event) => {
-        event.preventDefault();
-        if (!disabled) setIsDragOver(true);
-      }}
-      onDragLeave={() => setIsDragOver(false)}
-      onDrop={(event) => {
-        event.preventDefault();
-        setIsDragOver(false);
-        if (disabled || event.dataTransfer.files.length === 0) return;
-        onDrop(event.dataTransfer.files[0].path);
-      }}
-    >
-      <Icon className="drop-icon" />
-      <span className="drop-text">フォルダをドラッグ＆ドロップ<br />またはクリックして選択</span>
-    </div>
-  );
-}
-
-function FileCard({ file, onClick }) {
-  const fileUrl = `file://${file.path}`;
-  const Icon = file.type === 'video' ? Video : Image;
-
-  return (
-    <div className="file-card" onClick={onClick}>
-      <div className="thumb-area">
-        {file.type === 'video' ? (
-          <video className="thumb-image" src={`${fileUrl}#t=0.1`} preload="metadata" muted />
-        ) : (
-          <img className="thumb-image" src={fileUrl} loading="lazy" alt={file.name} />
-        )}
-        <div className={`media-badge ${file.type === 'video' ? 'video' : 'image'}`}>
-          <Icon />
-        </div>
-      </div>
-      <div className="card-info">
-        <div className="file-name" title={file.name}>{file.name}</div>
-        <div className="file-meta-row">
-          <span className="date-badge">{file.creationDate}</span>
-          <span>{formatBytes(file.size)}</span>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export default function App() {

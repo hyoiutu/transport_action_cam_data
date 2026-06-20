@@ -22,6 +22,8 @@ test.describe('JSのモジュールに関するテスト', () => {
       'vite.config.js',
       'src/main.jsx',
       'src/App.jsx',
+      'src/components/DropZone.jsx',
+      'src/components/FileCard.jsx',
       'playwright.config.js',
       'tests/e2e.spec.js'
     ];

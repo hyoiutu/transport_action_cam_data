@@ -14,6 +14,18 @@
 
 ## 変更履歴
 
+### [2026-06-20] Reactコンポーネントの分離
+* **修正の動機・概要**:
+  - `App.jsx` に定義されていた `DropZone` と `FileCard` を個別コンポーネントとして分離し、Reactコードの見通しを改善。
+* **各ファイルへの影響と変更内容**:
+  * **実装**:
+    * `src/components/DropZone.jsx`: フォルダ選択用ドロップゾーンコンポーネントを追加。
+    * `src/components/FileCard.jsx`: ファイルカード表示コンポーネントを追加。
+    * `src/App.jsx`: `DropZone` / `FileCard` の内部定義を削除し、`src/components/` からimportする構成に変更。
+    * `tests/react-integration.spec.js` / `tests/module-format.spec.js`: コンポーネント分離とESM利用を検証する対象を追加。
+  * **README.md**: Reactコンポーネント配置方針として `src/components/` を追記。
+  * **仕様書**: 変更なし（技術スタック・機能仕様に変更なし）
+
 ### [2026-06-20] React/Viteの導入
 * **修正の動機・概要**:
   - レンダラーUIをVanilla JavaScriptからReactコンポーネントへ移行し、Viteでビルドする構成に変更。
