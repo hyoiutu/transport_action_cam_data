@@ -1,8 +1,12 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const path = require('path');
-const fs = require('fs');
-const musicMetadata = require('music-metadata');
-const exifParser = require('exif-parser');
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as musicMetadata from 'music-metadata';
+import exifParser from 'exif-parser';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let mainWindow;
 let isCancelling = false;
@@ -12,9 +16,10 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.mjs'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: false,
       webSecurity: false
     },
     titleBarStyle: 'hiddenInset', // macOS用のきれいなタイトルバー
@@ -176,7 +181,7 @@ ipcMain.handle('start-copy', async (event, { files, destinationDir }) => {
     });
 
     try {
-      // コピー先パスの作成（YYYY/MM/DD）
+      // コピー先パスの作成（YYYY-MM-DD）
       const targetSubDir = path.join(destinationDir, file.creationDate);
       if (!fs.existsSync(targetSubDir)) {
         fs.mkdirSync(targetSubDir, { recursive: true });

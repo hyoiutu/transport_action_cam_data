@@ -64,7 +64,7 @@
 
 ## 4. 技術スタック
 - **フレームワーク**: Electron
-- **フロントエンド**: HTML5, CSS3 (Vanilla CSSによるカスタムスタイリング), JavaScript (ES6+)
+- **フロントエンド**: HTML5, CSS3 (Vanilla CSSによるカスタムスタイリング), JavaScript (ESM / ES6+)
 - **メタデータ解析**:
   - 動画: `music-metadata` (純粋なJavaScript/Node.js実装で、外部バイナリ `ffprobe` のインストール不要)
   - 画像: `exif-parser` 等のNode.jsライブラリ

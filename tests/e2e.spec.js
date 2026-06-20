@@ -1,7 +1,10 @@
-const { _electron: electron } = require('@playwright/test');
-const { test, expect } = require('@playwright/test');
-const path = require('path');
-const fs = require('fs');
+import { _electron as electron, test, expect } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const srcDir = path.resolve(__dirname, '../sony_test_source');
 const destDir = path.resolve(__dirname, '../test_destination');
@@ -14,7 +17,7 @@ test.beforeEach(() => {
   fs.mkdirSync(destDir, { recursive: true });
 });
 
-test.describe('Action Cam Data Transporter E2E Tests', () => {
+test.describe('Action Cam Data Transporter E2Eテスト', () => {
   let electronApp;
   let window;
 

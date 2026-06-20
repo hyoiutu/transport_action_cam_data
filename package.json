@@ -1,7 +1,8 @@
 {
   "name": "transport-action-cam-data",
   "version": "1.0.0",
-  "description": "Transport action camera data sorted by date YYYY/MM/DD",
+  "description": "Transport action camera data sorted by date YYYY-MM-DD",
+  "type": "module",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

@@ -14,6 +14,18 @@
 
 ## 変更履歴
 
+### [2026-06-20] CommonJSからESMへの移行
+* **修正の動機・概要**:
+  - プロジェクト全体のJavaScript実行形式をCommonJSからESMへ統一し、`import` / `export` ベースの実装に変更。
+  - ESM利用を検証する静的テストを追加。
+* **各ファイルへの影響と変更内容**:
+  * **実装**:
+    * `package.json` / `package-lock.json`: `type: module` を追加。
+    * `main.js` / `preload.mjs` / `playwright.config.js` / `tests/e2e.spec.js`: `require` / `module.exports` をESM構文へ移行。ElectronのESM preloadとして読み込むため、preloadファイルを `.mjs` に変更。
+    * `tests/module-format.spec.js`: 主要JavaScriptファイルがESM形式であることを検証するテストを追加。
+  * **README.md**: 開発メモにESM利用方針とテストコマンドを追記。
+  * **仕様書**: 技術スタックのJavaScript表記を `ESM / ES6+` に更新。
+
 ### [2026-06-20] テスト環境（Vitest/Playwright）の導入およびE2Eテストの作成
 * **修正の動機・概要**:
   - 技術スタックの変更やリファクタリングの準備として、単体テスト用の `vitest`、UIコンポーネント用の `testing library`、E2Eテスト用の `playwright` を導入。
