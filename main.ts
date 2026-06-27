@@ -2,13 +2,16 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import * as musicMetadata from 'music-metadata';
-import exifParser from 'exif-parser';
+
+const cjsRequire = createRequire(import.meta.url);
+const exifParser = cjsRequire('exif-parser');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let mainWindow;
+let mainWindow: BrowserWindow | null = null;
 let isCancelling = false;
 
 function createWindow() {
@@ -16,7 +19,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.mjs'),
+      preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -26,7 +29,7 @@ function createWindow() {
     backgroundColor: '#1e1e2e'  // 起動時のチラつき防止用の背景色
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   // 必要に応じて開発者ツールを開く
   // mainWindow.webContents.openDevTools();
@@ -47,7 +50,8 @@ app.on('window-all-closed', function () {
 // IPC ハンドラ定義
 
 // 1. フォルダ選択ダイアログの表示
-ipcMain.handle('select-directory', async (event, defaultPath) => {
+ipcMain.handle('select-directory', async (_, defaultPath: string | undefined) => {
+  if (!mainWindow) return null;
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory'],
     defaultPath: defaultPath || undefined
@@ -59,13 +63,22 @@ ipcMain.handle('select-directory', async (event, defaultPath) => {
   }
 });
 
+interface FileInfo {
+  name: string;
+  path: string;
+  size: number;
+  type: 'video' | 'image';
+  creationDate: string;
+  dateSource: string;
+}
+
 // 2. ディレクトリ内のファイルスキャン
-ipcMain.handle('scan-directory', async (event, dirPath) => {
+ipcMain.handle('scan-directory', async (_, dirPath: string) => {
   if (!dirPath || !fs.existsSync(dirPath)) {
     return [];
   }
 
-  const files = [];
+  const files: FileInfo[] = [];
   const allowedVideoExts = ['.mp4', '.mov', '.avi', '.mkv'];
   const allowedImageExts = ['.jpg', '.jpeg', '.png'];
 
@@ -84,14 +97,15 @@ ipcMain.handle('scan-directory', async (event, dirPath) => {
       const filePath = path.join(dirPath, dirent.name);
       const stats = fs.statSync(filePath);
 
-      let creationDate = null;
+      let creationDate: Date | null = null;
       let dateSource = 'file_system';
 
       if (isVideo) {
         try {
           const metadata = await musicMetadata.parseFile(filePath);
-          if (metadata.common && metadata.common.creation_time) {
-            creationDate = new Date(metadata.common.creation_time);
+          const common = metadata.common as any;
+          if (common && common.creation_time) {
+            creationDate = new Date(common.creation_time);
             dateSource = 'metadata';
           }
         } catch (e) {
@@ -151,9 +165,17 @@ ipcMain.handle('cancel-copy', () => {
   return true;
 });
 
+interface StartCopyArgs {
+  files: FileInfo[];
+  destinationDir: string;
+}
+
 // 4. ファイルコピーの実行
-ipcMain.handle('start-copy', async (event, { files, destinationDir }) => {
+ipcMain.handle('start-copy', async (_, { files, destinationDir }: StartCopyArgs) => {
   isCancelling = false;
+  if (!mainWindow) {
+    throw new Error('Main window not initialized');
+  }
   if (!files || !destinationDir || !fs.existsSync(destinationDir)) {
     throw new Error('Invalid arguments or destination directory does not exist.');
   }
@@ -202,7 +224,6 @@ ipcMain.handle('start-copy', async (event, { files, destinationDir }) => {
       }
 
       // ファイルコピー (大きなファイルにも対応できるようストリームまたは単純なcopyFileSync)
-      // 進捗表示の同期を考慮し、同期または非同期で行う
       fs.copyFileSync(file.path, targetFilePath);
       copiedCount++;
 
@@ -212,10 +233,8 @@ ipcMain.handle('start-copy', async (event, { files, destinationDir }) => {
         totalFiles,
         currentFile: file.name
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Error copying file ${file.name}:`, err);
-      // エラーが発生しても処理を継続するか、あるいは停止するか
-      // 今回は処理を続行しつつエラーを通知する
       mainWindow.webContents.send('copy-error', {
         fileName: file.name,
         error: err.message

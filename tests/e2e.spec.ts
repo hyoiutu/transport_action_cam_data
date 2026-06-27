@@ -18,13 +18,13 @@ test.beforeEach(() => {
 });
 
 test.describe('Action Cam Data Transporter E2Eテスト', () => {
-  let electronApp;
-  let window;
+  let electronApp: any;
+  let window: any;
 
   test.beforeEach(async () => {
     // Electron アプリを起動
     electronApp = await electron.launch({
-      args: [path.join(__dirname, '../main.js')]
+      args: [path.join(__dirname, '../dist/main.js')]
     });
     window = await electronApp.firstWindow();
     // 完全にロードされるのを待つ
@@ -52,9 +52,9 @@ test.describe('Action Cam Data Transporter E2Eテスト', () => {
 
   test('2. フォルダの選択、スキャン、およびプレビュー機能の検証', async () => {
     // レンダラープロセスの関数をモック・呼び出してフォルダ設定とスキャンをシミュレート
-    await window.evaluate(async ({ src, dest }) => {
-      await window.updateDirectory('src', src);
-      await window.updateDirectory('dest', dest);
+    await window.evaluate(async ({ src, dest }: { src: string, dest: string }) => {
+      await (window as any).updateDirectory('src', src);
+      await (window as any).updateDirectory('dest', dest);
     }, { src: srcDir, dest: destDir });
 
     // スキャンされたファイル数が UI に反映されていることを確認 (sony_test_source は 5 ファイル)
@@ -83,16 +83,16 @@ test.describe('Action Cam Data Transporter E2Eテスト', () => {
 
   test('3. 自動分類コピーと重複回避の検証', async () => {
     // フォルダ設定とスキャンを実行
-    await window.evaluate(async ({ src, dest }) => {
-      await window.updateDirectory('src', src);
-      await window.updateDirectory('dest', dest);
+    await window.evaluate(async ({ src, dest }: { src: string, dest: string }) => {
+      await (window as any).updateDirectory('src', src);
+      await (window as any).updateDirectory('dest', dest);
     }, { src: srcDir, dest: destDir });
 
     // スキャンされた最初のファイル情報（日付とファイル名）を動的に取得
     const { firstFileDate, firstFileName } = await window.evaluate(() => {
       return {
-        firstFileDate: srcFiles[0].creationDate,
-        firstFileName: srcFiles[0].name
+        firstFileDate: (window as any).srcFiles[0].creationDate,
+        firstFileName: (window as any).srcFiles[0].name
       };
     });
 

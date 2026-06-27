@@ -1,6 +1,6 @@
 import { Image, Video } from 'lucide-react';
 
-function formatBytes(bytes, decimals = 2) {
+function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 Bytes';
 
   const k = 1024;
@@ -11,7 +11,12 @@ function formatBytes(bytes, decimals = 2) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-export default function FileCard({ file, onClick }) {
+interface FileCardProps {
+  file: FileInfo;
+  onClick: () => void;
+}
+
+export default function FileCard({ file, onClick }: FileCardProps) {
   const fileUrl = `file://${file.path}`;
   const Icon = file.type === 'video' ? Video : Image;
 

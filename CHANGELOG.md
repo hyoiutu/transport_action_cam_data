@@ -14,6 +14,23 @@
 
 ## 変更履歴
 
+### [2026-06-27] JavaScriptからTypeScriptへの移行
+* **修正の動機・概要**:
+  - コードベースの型安全性の向上、開発効率化、バグの早期発見を目的に、プロジェクト全体を JavaScript から TypeScript へ移行。
+* **各ファイルへの影響と変更内容**:
+  * **実装**:
+    - `package.json`: `typescript` および `@types/*` 関連パッケージを devDependencies に追加。メインプロセスのエントリポイントを `dist/main.js` に変更し、ビルドスクリプト `build:renderer` (`vite build`), `build:main` (`tsc -p tsconfig.main.json`), `build` (両方の実行) を追加。
+    - `tsconfig.json`, `tsconfig.main.json`: レンダラープロセスおよびメインプロセス用の型チェックとコンパイル設定ファイルを新規作成。
+    - `main.ts` (旧 `main.js`), `preload.ts` (旧 `preload.mjs`): メインプロセスとプリロードの TypeScript 移行。型注釈の追加に加え、`rules.md` に従い使用しない引数を `_` に変更。`exif-parser` 等の型定義のないライブラリを `createRequire` 等で安全に利用するよう修正。
+    - `src/main.tsx` (旧 `src/main.jsx`), `src/App.tsx` (旧 `src/App.jsx`), `src/components/DropZone.tsx` (旧 `src/components/DropZone.jsx`), `src/components/FileCard.tsx` (旧 `src/components/FileCard.jsx`): レンダラー側コンポーネントの TypeScript 化と、ファイルインポート時の拡張子省略への移行。
+    - `src/global.d.ts`: `window` オブジェクトや Electron API、ファイル情報用の共通型定義を記述。
+    - `playwright.config.ts` (旧 `playwright.config.js`), `tests/*.spec.ts` (旧 `tests/*.spec.js`): テスト設定およびテストコード一式を TypeScript に移行。E2Eテスト内の非同期呼び出しの `await` 抜けなどのバグ修正もあわせて実施。
+    - `rules.md`: TypeScript の使用ルールを追加。
+  * **README.md**:
+    - レンダラーUIの技術構成を `React + Vite + TypeScript` に修正。ビルドスクリプトとコンパイルフローの変更内容を反映。
+  * **仕様書**:
+    - `specs/system_specification.md`: 技術スタック欄を `JavaScript (ESM / ES6+)` から `TypeScript (ESM)` に修正。コンパイルツールとして `tsc` を追記。
+
 ### [2026-06-20] Vitest対象範囲の `src/` 配下限定
 * **修正の動機・概要**:
   - `vitest` が E2E テスト用の `tests/` 配下まで拾わないようにし、単体テストの配置先を `src/**/*.tests.*` に統一。

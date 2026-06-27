@@ -18,17 +18,17 @@ test.describe('React integration', () => {
     expect(packageJson.dependencies['react-dom']).toBeDefined();
     expect(packageJson.devDependencies.vite).toBeDefined();
     expect(indexHtml).toContain('<div id="root"></div>');
-    expect(indexHtml).toContain('/src/main.jsx');
-    expect(fs.existsSync(path.join(rootDir, 'src', 'App.jsx'))).toBe(true);
+    expect(indexHtml).toContain('/src/main.tsx');
+    expect(fs.existsSync(path.join(rootDir, 'src', 'App.tsx'))).toBe(true);
   });
 
   test('places shared React components under src/components', () => {
-    const appSource = fs.readFileSync(path.join(rootDir, 'src', 'App.jsx'), 'utf8');
+    const appSource = fs.readFileSync(path.join(rootDir, 'src', 'App.tsx'), 'utf8');
 
-    expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'DropZone.jsx'))).toBe(true);
-    expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'FileCard.jsx'))).toBe(true);
-    expect(appSource).toContain("import DropZone from './components/DropZone.jsx';");
-    expect(appSource).toContain("import FileCard from './components/FileCard.jsx';");
+    expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'DropZone.tsx'))).toBe(true);
+    expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'FileCard.tsx'))).toBe(true);
+    expect(appSource).toContain("import DropZone from './components/DropZone';");
+    expect(appSource).toContain("import FileCard from './components/FileCard';");
     expect(appSource).not.toMatch(/function DropZone/);
     expect(appSource).not.toMatch(/function FileCard/);
   });

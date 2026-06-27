@@ -33,3 +33,11 @@ describe('APIに関するテスト', () => {
   })
 })
 ```
+
+# TypeScriptの使用
+
+NG
+JavaScriptファイル(.js, .jsx)を使用する。
+
+OK
+TypeScriptファイル(.ts, .tsx)を使用し、適切な型定義を行う。

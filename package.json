@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "Transport action camera data sorted by date YYYY-MM-DD",
   "type": "module",
-  "main": "main.js",
+  "main": "dist/main.js",
   "scripts": {
     "start": "npm run build && electron .",
-    "build": "vite build",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build": "npm run build:renderer && npm run build:main",
     "test:e2e": "npm run build && playwright test",
     "test:unit": "vitest run"
   },
@@ -24,8 +26,12 @@
     "@playwright/test": "^1.61.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
+    "@types/node": "^26.0.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
     "electron": "^42.4.1",
+    "typescript": "^6.0.3",
     "vite": "^5.4.21",
     "vitest": "^4.1.9"
   }

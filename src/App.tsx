@@ -14,17 +14,24 @@ import {
   UploadCloud,
   X
 } from 'lucide-react';
-import DropZone from './components/DropZone.jsx';
-import FileCard from './components/FileCard.jsx';
+import DropZone from './components/DropZone';
+import FileCard from './components/FileCard';
 
-const initialProgress = {
+interface ProgressState {
+  status: string;
+  percent: number;
+  file: string;
+  active: boolean;
+}
+
+const initialProgress: ProgressState = {
   status: '待機中...',
   percent: 0,
   file: '',
   active: false
 };
 
-function formatBytes(bytes, decimals = 2) {
+function formatBytes(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 Bytes';
 
   const k = 1024;
@@ -35,28 +42,28 @@ function formatBytes(bytes, decimals = 2) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-function showErrorToast(message) {
+function showErrorToast(message: string): void {
   console.error(message);
   alert(message);
 }
 
 export default function App() {
-  const [srcPath, setSrcPath] = useState('');
-  const [destPath, setDestPath] = useState('');
-  const [srcFiles, setSrcFiles] = useState([]);
-  const [destFiles, setDestFiles] = useState([]);
-  const [currentTab, setCurrentTab] = useState('src');
-  const [isCopying, setIsCopying] = useState(false);
-  const [scanInfo, setScanInfo] = useState('フォルダを選択してください');
-  const [progress, setProgress] = useState(initialProgress);
-  const [previewFile, setPreviewFile] = useState(null);
+  const [srcPath, setSrcPath] = useState<string>('');
+  const [destPath, setDestPath] = useState<string>('');
+  const [srcFiles, setSrcFiles] = useState<FileInfo[]>([]);
+  const [destFiles, setDestFiles] = useState<FileInfo[]>([]);
+  const [currentTab, setCurrentTab] = useState<'src' | 'dest'>('src');
+  const [isCopying, setIsCopying] = useState<boolean>(false);
+  const [scanInfo, setScanInfo] = useState<string>('フォルダを選択してください');
+  const [progress, setProgress] = useState<ProgressState>(initialProgress);
+  const [previewFile, setPreviewFile] = useState<FileInfo | null>(null);
 
   useEffect(() => {
     window.srcFiles = srcFiles;
     window.destFiles = destFiles;
   }, [srcFiles, destFiles]);
 
-  const updateDirectory = useCallback(async (type, pathStr) => {
+  const updateDirectory = useCallback(async (type: 'src' | 'dest', pathStr: string) => {
     if (type === 'src') {
       setSrcPath(pathStr);
       setScanInfo('コピー元をスキャン中...');
@@ -65,7 +72,7 @@ export default function App() {
         window.srcFiles = files;
         setSrcFiles(files);
         setScanInfo(`スキャン完了 - 元: ${files.length} 件 / 先: ${window.destFiles?.length || 0} 件`);
-      } catch (error) {
+      } catch (error: any) {
         showErrorToast(`コピー元のスキャンに失敗しました: ${error.message}`);
         window.srcFiles = [];
         setSrcFiles([]);
@@ -81,7 +88,7 @@ export default function App() {
       window.destFiles = files;
       setDestFiles(files);
       setScanInfo(`スキャン完了 - 元: ${window.srcFiles?.length || 0} 件 / 先: ${files.length} 件`);
-    } catch (error) {
+    } catch (error: any) {
       showErrorToast(`コピー先のスキャンに失敗しました: ${error.message}`);
       window.destFiles = [];
       setDestFiles([]);
@@ -115,7 +122,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const closeByEscape = (event) => {
+    const closeByEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setPreviewFile(null);
     };
     document.addEventListener('keydown', closeByEscape);
@@ -125,7 +132,7 @@ export default function App() {
   const files = currentTab === 'src' ? srcFiles : destFiles;
   const canStartCopy = srcFiles.length > 0 && destPath !== '' && !isCopying;
 
-  const handleSelectDirectory = async (type) => {
+  const handleSelectDirectory = async (type: 'src' | 'dest') => {
     if (isCopying) return;
     const currentPath = type === 'src' ? srcPath : destPath;
     const selectedPath = await window.api.selectDirectory(currentPath);
@@ -161,7 +168,7 @@ export default function App() {
           file: `${result.copiedCount} 件コピー後に中断しました。`
         }));
       }
-    } catch (error) {
+    } catch (error: any) {
       setProgress((current) => ({
         ...current,
         active: true,
