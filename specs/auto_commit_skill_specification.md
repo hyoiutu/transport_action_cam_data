@@ -47,11 +47,18 @@
 ├── .agents/
 │   └── skills/
 │       └── auto-commit/
-│           └── SKILL.md            # スキルのインストラクションファイル
+│           └── SKILL.md            # スキルのインストラクションファイル（実体）
+├── .claude/
+│   └── skills/
+│       └── auto-commit/
+│           └── SKILL.md            # .agents/skills/auto-commit/SKILL.md へのシンボリックリンク
 ├── commit_rules.md                 # ユーザーが編集可能なコミットの細則ルールファイル
 └── specs/
     └── auto_commit_skill_specification.md  # 本仕様書
 ```
+
+### 3.1. Claude Code との互換性
+本スキルは元々 Google Antigravity 環境向けに設計されたが、SKILL.md の YAML フロントマター形式（`name` / `description`）が Claude Code のスキル仕様とも互換性があるため、`.claude/skills/auto-commit/SKILL.md` にシンボリックリンクを配置することで Claude Code からも `/auto-commit` として呼び出せるようにする。実体は `.agents/skills/auto-commit/SKILL.md` の一箇所のみとし、二重管理を避ける。
 
 ---
 

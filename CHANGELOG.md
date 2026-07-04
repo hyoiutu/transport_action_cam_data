@@ -14,6 +14,17 @@
 
 ## 変更履歴
 
+### [2026-07-04] auto-commitスキルのClaude Code対応
+* **修正の動機・概要**:
+  - `auto-commit` スキルは元々 Google Antigravity 環境向けに設計されていたが、SKILL.md のフロントマター形式が Claude Code のスキル仕様とも互換性があったため、Claude Code からも `/auto-commit` として呼び出せるように対応した。実体は1箇所のみとし、二重管理を避けるためシンボリックリンクで対応。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `.claude/skills/auto-commit/SKILL.md`: `.agents/skills/auto-commit/SKILL.md` を指すシンボリックリンクを新規作成。
+  - **README.md**:
+    - 自動コミットスキルの配置場所の説明に、`.claude/skills/` へのシンボリックリンクにより Claude Code からも呼び出せる旨を追記。
+  - **仕様書**:
+    - `specs/auto_commit_skill_specification.md`: ファイル構造図に `.claude/skills/auto-commit/SKILL.md`（シンボリックリンク）を追加し、「3.1. Claude Code との互換性」セクションを新設。
+
 ### [2026-07-04] AI自動コミットスキルの作成
 * **修正の動機・概要**:
   - AIエージェントがコードの変更を行った際に、自動的かつ安全にコミット処理を行うためのカスタムスキルとコミットルールを導入。
