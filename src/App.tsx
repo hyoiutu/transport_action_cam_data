@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Aperture,
   Archive,
@@ -14,6 +13,7 @@ import {
   UploadCloud,
   X
 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DropZone } from './components/DropZone';
 import { FileCard } from './components/FileCard';
 
@@ -48,6 +48,8 @@ const showErrorToast = (message: string): void => {
 };
 
 const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
+const PERCENTAGE_MULTIPLIER = 100;
 
 export const App = () => {
   const [srcPath, setSrcPath] = useState('');
@@ -105,7 +107,7 @@ export const App = () => {
   useEffect(() => {
     const unsubscribeProgress = window.api.onCopyProgress((data) => {
       if (data.status !== 'copying') return;
-      const percent = Math.round((data.copiedCount / data.totalFiles) * 100);
+      const percent = Math.round((data.copiedCount / data.totalFiles) * PERCENTAGE_MULTIPLIER);
       setProgress({
         active: true,
         percent,
@@ -193,7 +195,7 @@ export const App = () => {
   return (
     <>
       <div className="title-bar">
-        <div className="title-bar-drag"></div>
+        <div className="title-bar-drag" />
         <div className="title-text">Action Cam Data Transporter</div>
       </div>
 
@@ -245,7 +247,12 @@ export const App = () => {
             <button id="btn-start-copy" className="btn btn-primary" disabled={!canStartCopy} onClick={handleStartCopy}>
               <Play /> コピーを開始する
             </button>
-            <button id="btn-cancel-copy" className="btn btn-danger" disabled={!isCopying} onClick={() => window.api.cancelCopy()}>
+            <button
+              id="btn-cancel-copy"
+              className="btn btn-danger"
+              disabled={!isCopying}
+              onClick={() => window.api.cancelCopy()}
+            >
               <Square /> キャンセル
             </button>
           </div>
@@ -256,9 +263,11 @@ export const App = () => {
               <span id="progress-percent">{progress.percent}%</span>
             </div>
             <div className="progress-bar-wrapper">
-              <div className="progress-bar" id="progress-bar" style={{ width: `${progress.percent}%` }}></div>
+              <div className="progress-bar" id="progress-bar" style={{ width: `${progress.percent}%` }} />
             </div>
-            <div className="progress-file" id="progress-file">{progress.file}</div>
+            <div className="progress-file" id="progress-file">
+              {progress.file}
+            </div>
           </div>
         </aside>
 
@@ -307,25 +316,27 @@ export const App = () => {
       </div>
 
       <div className={`modal${previewFile ? ' show' : ''}`} id="preview-modal">
-        <div className="modal-backdrop" id="modal-backdrop" onClick={() => setPreviewFile(null)}></div>
+        <div className="modal-backdrop" id="modal-backdrop" onClick={() => setPreviewFile(null)} />
         <div className="modal-content">
           <button className="modal-close" id="modal-close" onClick={() => setPreviewFile(null)}>
             <X />
           </button>
           <div className="modal-body" id="modal-body">
-            {previewFile && (
-              previewFile.type === 'video' ? (
+            {previewFile &&
+              (previewFile.type === 'video' ? (
                 <video src={previewFileUrl} controls autoPlay />
               ) : (
                 <img src={previewFileUrl} alt={previewFile.name} />
-              )
-            )}
+              ))}
           </div>
           <div className="modal-footer">
-            <div className="modal-meta-title" id="modal-meta-title">{previewFile?.name || 'File Name'}</div>
+            <div className="modal-meta-title" id="modal-meta-title">
+              {previewFile?.name || 'File Name'}
+            </div>
             <div className="modal-meta-details">
               <span id="modal-meta-date">
-                <Calendar /> {previewFile
+                <Calendar />{' '}
+                {previewFile
                   ? `撮影・作成日: ${previewFile.creationDate} (${previewFile.dateSource === 'metadata' ? 'メタデータ' : 'ファイルシステム'})`
                   : 'Date'}
               </span>

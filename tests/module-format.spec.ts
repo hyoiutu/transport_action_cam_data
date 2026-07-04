@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { expect, test } from '@playwright/test';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,9 +10,7 @@ const rootDir = path.resolve(__dirname, '..');
 
 test.describe('TS/JSのモジュールに関するテスト', () => {
   test('アプリケーション及びテストコードにはESMが使われている', () => {
-    const packageJson = JSON.parse(
-      fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8')
-    );
+    const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
 
     expect(packageJson.type).toBe('module');
 

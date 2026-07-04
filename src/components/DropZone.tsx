@@ -1,4 +1,4 @@
-import { useState, DragEvent } from 'react';
+import { DragEvent, useState } from 'react';
 
 type DropZoneProps = {
   id: string;
@@ -33,7 +33,11 @@ export const DropZone = ({ id, icon: Icon, onClick, onDrop, disabled }: DropZone
       }}
     >
       <Icon className="drop-icon" />
-      <span className="drop-text">フォルダをドラッグ＆ドロップ<br />またはクリックして選択</span>
+      <span className="drop-text">
+        フォルダをドラッグ＆ドロップ
+        <br />
+        またはクリックして選択
+      </span>
     </div>
   );
 };

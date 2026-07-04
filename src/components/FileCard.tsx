@@ -33,7 +33,9 @@ export const FileCard = ({ file, onClick }: FileCardProps) => {
         </div>
       </div>
       <div className="card-info">
-        <div className="file-name" title={file.name}>{file.name}</div>
+        <div className="file-name" title={file.name}>
+          {file.name}
+        </div>
         <div className="file-meta-row">
           <span className="date-badge">{file.creationDate}</span>
           <span>{formatBytes(file.size)}</span>
