@@ -63,4 +63,5 @@
   - `@testing-library/jest-dom/vitest` を読み込み、`toBeInTheDocument` 等のマッチャーを有効化する。
   - 本プロジェクトは `test.globals: true` を使用していない（`describe` / `test` / `expect` 等を各ファイルで明示的にimportする）ため、Testing Libraryの自動クリーンアップ（`afterEach(cleanup)`の自動登録）が働かない。そのため `src/vitest.setup.ts` で `afterEach(() => cleanup())` を明示的に実行している。これを忘れるとレンダリング結果がテスト間で蓄積し、`getByText`等で「複数要素が見つかる」エラーが発生する。
 - **共有モック・フィクスチャ**: 複数のテストファイルで共有するモック（例: `window.api` のスタブ）やフィクスチャ生成関数（例: `FileInfo` のダミーデータ）は `src/test-utils/` に配置する。このディレクトリのファイルはテスト対象そのものではないため `*.tests.*` という命名は使わない（Vitestの実行対象に含めないため）。
+- **`vi.restoreAllMocks()` は `vi.spyOn` で作成したモックにしか効かない**: `vi.mock('module', () => ({ fn: vi.fn() }))` のようにモックファクトリ内で作成した `vi.fn()` は、`vi.restoreAllMocks()` では呼び出し履歴も実装もクリアされず、次のテストへ持ち越されてしまう（実際にこの問題で誤ったテスト結果が発生したことがある）。モックファクトリで作成した関数のクリーンアップには `vi.resetAllMocks()`（または `vi.clearAllMocks()`）を使うこと。`vi.spyOn(window, 'alert')` のように実オブジェクトをスパイした場合は `vi.restoreAllMocks()` で元の実装に戻せるため、そちらは引き続き使用してよい。
 - **実行コマンド**: `npm run test:unit`（対象は `src/**/*.tests.*`）

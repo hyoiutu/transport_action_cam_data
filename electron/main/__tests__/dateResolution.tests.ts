@@ -24,7 +24,7 @@ const createStats = (birthtimeMs: number, mtimeMs: number) =>
 
 describe('resolveCreationDateInfoに関するテスト', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   test('動画でメタデータからcreation_timeが取得できたとき、metadataソースの日時を返す', async () => {

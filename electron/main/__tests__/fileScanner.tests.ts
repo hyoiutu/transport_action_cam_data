@@ -38,7 +38,7 @@ describe('resolveFileCategoryに関するテスト', () => {
 
 describe('scanDirectoryに関するテスト', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   test('ディレクトリパスが空文字のとき、空配列を返す', async () => {

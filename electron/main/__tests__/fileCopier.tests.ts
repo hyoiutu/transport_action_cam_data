@@ -1,17 +1,30 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import type { FileInfo } from '../../types/domain.js';
 
 vi.mock('node:fs', () => ({
   default: {
-    existsSync: vi.fn()
+    existsSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    copyFileSync: vi.fn()
   }
 }));
 
 const fs = (await import('node:fs')).default;
-const { resolveCollisionFreeFilePath } = await import('../fileCopier.js');
+const { resolveCollisionFreeFilePath, copyFileToDateDirectory } = await import('../fileCopier.js');
+
+const createFileInfo = (overrides: Partial<FileInfo> = {}): FileInfo => ({
+  name: 'a.mp4',
+  path: '/src/a.mp4',
+  size: 1,
+  type: 'video',
+  creationDate: '2026-01-01',
+  dateSource: 'metadata',
+  ...overrides
+});
 
 describe('resolveCollisionFreeFilePathに関するテスト', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   test('同名ファイルが存在しないとき、そのままのファイル名のパスを返す', () => {
@@ -59,5 +72,50 @@ describe('resolveCollisionFreeFilePathに関するテスト', () => {
 
     // Assert
     expect(result).toBe('/dest/README_1');
+  });
+});
+
+describe('copyFileToDateDirectoryに関するテスト', () => {
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  test('撮影日のサブディレクトリが存在しないとき、作成してからコピーする', () => {
+    // Arrange
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+    const file = createFileInfo();
+
+    // Act
+    const result = copyFileToDateDirectory(file, '/dest');
+
+    // Assert
+    expect(fs.mkdirSync).toHaveBeenCalledWith('/dest/2026-01-01', { recursive: true });
+    expect(fs.copyFileSync).toHaveBeenCalledWith('/src/a.mp4', '/dest/2026-01-01/a.mp4');
+    expect(result).toBe('/dest/2026-01-01/a.mp4');
+  });
+
+  test('撮影日のサブディレクトリが既に存在するとき、作成しない', () => {
+    // Arrange
+    vi.mocked(fs.existsSync).mockImplementation((target) => String(target) === '/dest/2026-01-01');
+    const file = createFileInfo();
+
+    // Act
+    copyFileToDateDirectory(file, '/dest');
+
+    // Assert
+    expect(fs.mkdirSync).not.toHaveBeenCalled();
+  });
+
+  test('同名ファイルが存在するとき、連番を付与した名前でコピーする', () => {
+    // Arrange
+    vi.mocked(fs.existsSync).mockImplementation((target) => String(target).endsWith('a.mp4'));
+    const file = createFileInfo();
+
+    // Act
+    const result = copyFileToDateDirectory(file, '/dest');
+
+    // Assert
+    expect(fs.copyFileSync).toHaveBeenCalledWith('/src/a.mp4', '/dest/2026-01-01/a_1.mp4');
+    expect(result).toBe('/dest/2026-01-01/a_1.mp4');
   });
 });

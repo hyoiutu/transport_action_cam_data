@@ -1,5 +1,5 @@
 import { contextBridge, IpcRendererEvent, ipcRenderer } from 'electron';
-import type { CopyErrorData, CopyProgressData, FileInfo } from '../main/main.js';
+import type { CopyErrorData, CopyProgressData, FileInfo } from '../types/domain.js';
 
 contextBridge.exposeInMainWorld('api', {
   selectDirectory: (defaultPath?: string) => ipcRenderer.invoke('select-directory', defaultPath),

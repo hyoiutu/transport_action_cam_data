@@ -14,6 +14,27 @@
 
 ## 変更履歴
 
+### [2026-07-05] IPCハンドラの分離・型定義の再配置・Biome検出限界の明文化
+* **修正の動機・概要**:
+  - 前回のelectron/リファクタリングに対する指摘を受け、(1) IPCハンドラをelectron/ipc/以下へハンドラ毎に分離、(2) start-copyハンドラに残っていたファイルコピー実行ロジックの関数分離、(3) select-directoryの if/else を三項演算子に簡略化、(4) BrowserWindowのwidth/height（マジックナンバー）の定数化、(5) 型定義ファイル（domain.ts, exif-parser.d.ts）のelectron/types/への分離、を行った。
+  - 3・4番目はrules.mdのKISS原則・マジックナンバー回避ルールに反していたが見落としていた。原因を調査したところ、Biomeの`noMagicNumbers`が比較・算術式の数値は検出してもオブジェクトリテラルのプロパティ値（`width: 1200`等）は検出せず、KISS原則（if-elseの簡略化）はそもそも自動検出の対象外であることが判明した。ルール自体の不足ではなく、Biomeで検出できない範囲を人手で確認する仕組みが欠けていたことが原因のため、rules.md冒頭にその旨の注記を追加した。
+  - テスト再構成の過程で、`vi.restoreAllMocks()`は`vi.spyOn`で作成したモックにしか効かず、`vi.mock()`ファクトリで作成した`vi.fn()`の呼び出し履歴・実装は次のテストへ持ち越されることが判明し、実際に誤ったテスト結果（前のテストのモック呼び出しを誤検知）が発生した。該当箇所を`vi.resetAllMocks()`に修正し、test_rules.mdに注記を追加した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `electron/types/domain.ts`（旧`electron/main/types.ts`）, `electron/types/exif-parser.d.ts`（旧`electron/main/exif-parser.d.ts`）: `electron/types/`へ移動。
+    - `electron/ipc/selectDirectoryHandler.ts` / `scanDirectoryHandler.ts` / `cancelCopyHandler.ts` / `startCopyHandler.ts` / `cancellationState.ts`: 新規作成。各IPCハンドラを1ファイルずつに分離。
+    - `electron/main/windowState.ts`: 新規作成。`mainWindow`の共有状態を`getMainWindow`/`setMainWindow`として分離。
+    - `electron/main/fileCopier.ts`: `copyFileToDateDirectory`関数を追加し、start-copyハンドラに残っていたコピー実行ロジック（対象ディレクトリ作成・衝突回避・コピー実行）を移設。
+    - `electron/main/main.ts`: IPCハンドラ登録とウィンドウ生命管理のみを担当する薄い層に整理。`DEFAULT_WINDOW_WIDTH`/`DEFAULT_WINDOW_HEIGHT`定数を追加。
+    - `tsconfig.main.json`: `include`を新しいファイル構成に合わせて更新。
+    - テストファイルをディレクトリ移動に合わせて再構成（`electron/ipc/__tests__/*`を新規作成、`electron/main/__tests__/main.tests.ts`を配線層のみのテストに縮小、`fileCopier.tests.ts`に`copyFileToDateDirectory`のテストを追加）。
+    - `electron/main/__tests__/fileCopier.tests.ts` / `electron/ipc/__tests__/cancelCopyHandler.tests.ts` / `scanDirectoryHandler.tests.ts` / `electron/main/__tests__/fileScanner.tests.ts` / `dateResolution.tests.ts`: `vi.restoreAllMocks()`を`vi.resetAllMocks()`に修正。
+    - `src/tests/module-format.spec.ts`: ESMチェック対象を新しいファイル構成に更新。
+  - **rules.md**: 冒頭に「Biomeの自動チェックがカバーしない範囲について」の注記を追加。
+  - **test_rules.md**: `vi.restoreAllMocks()`の対象範囲に関する注記を追加。
+  - **README.md / 仕様書**: 変更なし
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:unit`（17ファイル・105テスト全て成功）, `npm run test:e2e`（全6テスト成功、実アプリでのフォルダ選択・スキャン・コピー・重複回避を確認）で動作確認済み。
+
 ### [2026-07-05] electron/配下の単体テスト追加とSRPリファクタリング
 * **修正の動機・概要**:
   - `electron/`配下（`main.ts`, `preload.ts`）だけがこれまでのリファクタリング・テスト整備の対象から漏れていた。原因を調査した結果、(1) `vite.config.ts`のVitest `include`が`src/**/*.tests.*`のみで`electron/`に届いていなかったこと、(2) `test_rules.md`のルール6が`src/components`等のみを列挙し`electron/`に触れていなかったこと、(3) `main.ts`のIPCハンドラが`ipcMain.handle()`に匿名関数として登録されexportされておらずテストしにくい構造だったこと、の3点が原因と判明した。(1)(2)を修正した上で、テスト→リファクタリングの順で対応した（Red-Green-Refactor）。

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { FileInfo } from '../types/domain.js';
 
 // 重複ファイル名の競合回避処理: 同名ファイルが存在する場合、末尾に連番を付与する
 export const resolveCollisionFreeFilePath = (targetDir: string, fileName: string): string => {
@@ -16,5 +17,17 @@ export const resolveCollisionFreeFilePath = (targetDir: string, fileName: string
     counter++;
   }
 
+  return targetFilePath;
+};
+
+// 撮影日ごとのサブディレクトリ（YYYY-MM-DD）へファイルをコピーし、実際にコピーした先のパスを返す
+export const copyFileToDateDirectory = (file: FileInfo, destinationDir: string): string => {
+  const targetSubDir = path.join(destinationDir, file.creationDate);
+  if (!fs.existsSync(targetSubDir)) {
+    fs.mkdirSync(targetSubDir, { recursive: true });
+  }
+
+  const targetFilePath = resolveCollisionFreeFilePath(targetSubDir, file.name);
+  fs.copyFileSync(file.path, targetFilePath);
   return targetFilePath;
 };

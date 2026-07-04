@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { FileInfo } from '../types/domain.js';
 import { formatJstDate, resolveCreationDateInfo } from './dateResolution.js';
-import type { FileInfo } from './types.js';
 
 const ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv'];
 const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png'];
