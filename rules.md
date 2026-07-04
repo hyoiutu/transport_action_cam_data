@@ -506,6 +506,208 @@ const fileCount = 10;
 const calculateTotalSize = (files: FileInfo[]) => {
   // ...
 };
+```
+
+---
+
+# SRP（単一責任の原則）: モジュールを変更する理由は1つにする
+
+NG
+
+```typescript
+const TodoList = () => {
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/todos')
+      .then((res) => res.json())
+      .then(setTodos)
+      .finally(() => setIsFetching(false));
+  }, []);
+
+  return (
+    <ul>
+      {todos.map((todo) => (
+        <li key={todo.id}>{todo.title}</li>
+      ))}
+    </ul>
+  );
+};
+```
+
+OK
+
+```typescript
+const useFetchTodos = () => {
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [isFetching, setIsFetching] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/todos')
+      .then((res) => res.json())
+      .then(setTodos)
+      .finally(() => setIsFetching(false));
+  }, []);
+
+  return { todos, isFetching };
+};
+
+const TodoList = () => {
+  const { todos } = useFetchTodos();
+
+  return (
+    <ul>
+      {todos.map((todo) => (
+        <li key={todo.id}>{todo.title}</li>
+      ))}
+    </ul>
+  );
+};
+```
+
+データ取得（フェッチ）と描画（表示）という2つの責任が1つのコンポーネントに混在すると、どちらかの都合で変更するたびにもう一方まで壊れるリスクが生まれる。カスタムhooksに分離することで、コンポーネントは「描画」だけに責任を持てる。
+
+---
+
+# OCP（オープン・クローズドの原則）: 拡張に対して開き、修正に対して閉じる
+
+NG
+
+```typescript
+type TitleProps = {
+  title: string;
+  variant: 'default' | 'withLinkButton';
+  href?: string;
+};
+
+const Title = ({ title, variant, href }: TitleProps) => {
+  return (
+    <div>
+      <h1>{title}</h1>
+      {variant === 'withLinkButton' && <a href={href}>詳細</a>}
+    </div>
+  );
+};
+```
+
+OK
+
+```typescript
+const Title = ({ title, children }: { title: string; children?: ReactNode }) => {
+  return (
+    <div>
+      <h1>{title}</h1>
+      {children}
+    </div>
+  );
+};
+
+const TitleWithLink = ({ title, href }: { title: string; href: string }) => (
+  <Title title={title}>
+    <a href={href}>詳細</a>
+  </Title>
+);
+```
+
+NG例では新しいバリエーションを追加するたびに`Title`本体を修正し`variant`の分岐を増やす必要がある。OK例ではComposition（`children`によるコンポーネント合成）で拡張し、`Title`自体には変更を加えない。
+
+---
+
+# LSP（リスコフの置換原則）: 期待される契約を満たす実装だけを渡す
+
+NG
+
+```typescript
+type FileStorage = {
+  save: (path: string, data: string) => void;
+};
+
+const createReadOnlyStorage = (): FileStorage => ({
+  save: () => {
+    throw new Error('read-only storageではsaveはサポートされません');
+  }
+});
+```
+
+OK
+
+```typescript
+type ReadableStorage = {
+  load: (path: string) => string;
+};
+
+type WritableStorage = ReadableStorage & {
+  save: (path: string, data: string) => void;
+};
+
+const createReadOnlyStorage = (): ReadableStorage => ({
+  load: (path) => fs.readFileSync(path, 'utf8')
+});
+```
+
+NG例は`FileStorage`型を満たすと期待して呼び出した側が`save()`を呼ぶと必ず例外になり、契約に違反する。OK例は「読み取り専用」と「書き込み可能」を型で分離し、`ReadableStorage`を期待する呼び出し側はどんな実装を渡されても契約通りに動作する。
+
+---
+
+# ISP（インターフェース分離の原則）: 使わないプロパティへの依存を強制しない
+
+NG
+
+```typescript
+type Post = {
+  title: string;
+  author: { name: string; age: number };
+  createdAt: Date;
+};
+
+const PostTitle = ({ post }: { post: Post }) => <h1>{post.title}</h1>;
+const PostDate = ({ post }: { post: Post }) => <time>{post.createdAt.toISOString()}</time>;
+```
+
+OK
+
+```typescript
+const PostTitle = ({ title }: { title: string }) => <h1>{title}</h1>;
+const PostDate = ({ date }: { date: Date }) => <time>{date.toISOString()}</time>;
+```
+
+NG例は`title`しか使わないコンポーネントが`author`や`createdAt`を含む`Post`全体に依存しており、無関係な変更の影響を受けやすい。OK例は必要なプロパティのみを受け取ることで依存範囲を最小化する。
+
+---
+
+# DIP（依存性逆転の原則）: 抽象に依存し、具象ライブラリに直接依存しない
+
+NG
+
+```typescript
+import useSWR from 'swr';
+
+const useTodos = () => {
+  const { data } = useSWR<Todo[]>('/api/todos', fetcher);
+  return data;
+};
+```
+
+OK
+
+```typescript
+type FetchResult<T> = {
+  data: T | undefined;
+  isLoading: boolean;
+};
+
+const useFetch = <T,>(key: string, fetcher: () => Promise<T>): FetchResult<T> => {
+  const { data, isValidating } = useSWR<T>(key, fetcher);
+  return { data, isLoading: isValidating };
+};
+
+const useTodos = () => useFetch<Todo[]>('/api/todos', fetchTodos);
+```
+
+NG例はコンポーネント側が`swr`という具体的なライブラリに直接依存しており、ライブラリを差し替えると呼び出し側すべてに影響する。OK例は`useFetch`という抽象インターフェースの裏に具象実装を隠すことで、将来ライブラリを差し替えてもコンポーネント側の変更が不要になる。
+
+参考: https://zenn.dev/koki_tech/articles/361bb8f2278764
 
 ---
 
