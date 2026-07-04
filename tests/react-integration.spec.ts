@@ -27,8 +27,8 @@ test.describe('React integration', () => {
 
     expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'DropZone.tsx'))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'FileCard.tsx'))).toBe(true);
-    expect(appSource).toContain("import DropZone from './components/DropZone';");
-    expect(appSource).toContain("import FileCard from './components/FileCard';");
+    expect(appSource).toContain("import { DropZone } from './components/DropZone';");
+    expect(appSource).toContain("import { FileCard } from './components/FileCard';");
     expect(appSource).not.toMatch(/function DropZone/);
     expect(appSource).not.toMatch(/function FileCard/);
   });

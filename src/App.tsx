@@ -14,15 +14,15 @@ import {
   UploadCloud,
   X
 } from 'lucide-react';
-import DropZone from './components/DropZone';
-import FileCard from './components/FileCard';
+import { DropZone } from './components/DropZone';
+import { FileCard } from './components/FileCard';
 
-interface ProgressState {
+type ProgressState = {
   status: string;
   percent: number;
   file: string;
   active: boolean;
-}
+};
 
 const initialProgress: ProgressState = {
   status: '待機中...',
@@ -31,7 +31,7 @@ const initialProgress: ProgressState = {
   active: false
 };
 
-function formatBytes(bytes: number, decimals = 2): string {
+const formatBytes = (bytes: number, decimals = 2): string => {
   if (bytes === 0) return '0 Bytes';
 
   const k = 1024;
@@ -40,22 +40,24 @@ function formatBytes(bytes: number, decimals = 2): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-}
+};
 
-function showErrorToast(message: string): void {
+const showErrorToast = (message: string): void => {
   console.error(message);
   alert(message);
-}
+};
 
-export default function App() {
-  const [srcPath, setSrcPath] = useState<string>('');
-  const [destPath, setDestPath] = useState<string>('');
+const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
+
+export const App = () => {
+  const [srcPath, setSrcPath] = useState('');
+  const [destPath, setDestPath] = useState('');
   const [srcFiles, setSrcFiles] = useState<FileInfo[]>([]);
   const [destFiles, setDestFiles] = useState<FileInfo[]>([]);
   const [currentTab, setCurrentTab] = useState<'src' | 'dest'>('src');
-  const [isCopying, setIsCopying] = useState<boolean>(false);
-  const [scanInfo, setScanInfo] = useState<string>('フォルダを選択してください');
-  const [progress, setProgress] = useState<ProgressState>(initialProgress);
+  const [isCopying, setIsCopying] = useState(false);
+  const [scanInfo, setScanInfo] = useState('フォルダを選択してください');
+  const [progress, setProgress] = useState(initialProgress);
   const [previewFile, setPreviewFile] = useState<FileInfo | null>(null);
 
   useEffect(() => {
@@ -71,12 +73,12 @@ export default function App() {
         const files = await window.api.scanDirectory(pathStr);
         window.srcFiles = files;
         setSrcFiles(files);
-        setScanInfo(`スキャン完了 - 元: ${files.length} 件 / 先: ${window.destFiles?.length || 0} 件`);
-      } catch (error: any) {
-        showErrorToast(`コピー元のスキャンに失敗しました: ${error.message}`);
+        setScanInfo(`スキャン完了 - 元: ${files.length} 件 / 先: ${window.destFiles?.length ?? 0} 件`);
+      } catch (error: unknown) {
+        showErrorToast(`コピー元のスキャンに失敗しました: ${getErrorMessage(error)}`);
         window.srcFiles = [];
         setSrcFiles([]);
-        setScanInfo(`スキャン完了 - 元: 0 件 / 先: ${window.destFiles?.length || 0} 件`);
+        setScanInfo(`スキャン完了 - 元: 0 件 / 先: ${window.destFiles?.length ?? 0} 件`);
       }
       return;
     }
@@ -87,12 +89,12 @@ export default function App() {
       const files = await window.api.scanDirectory(pathStr);
       window.destFiles = files;
       setDestFiles(files);
-      setScanInfo(`スキャン完了 - 元: ${window.srcFiles?.length || 0} 件 / 先: ${files.length} 件`);
-    } catch (error: any) {
-      showErrorToast(`コピー先のスキャンに失敗しました: ${error.message}`);
+      setScanInfo(`スキャン完了 - 元: ${window.srcFiles?.length ?? 0} 件 / 先: ${files.length} 件`);
+    } catch (error: unknown) {
+      showErrorToast(`コピー先のスキャンに失敗しました: ${getErrorMessage(error)}`);
       window.destFiles = [];
       setDestFiles([]);
-      setScanInfo(`スキャン完了 - 元: ${window.srcFiles?.length || 0} 件 / 先: 0 件`);
+      setScanInfo(`スキャン完了 - 元: ${window.srcFiles?.length ?? 0} 件 / 先: 0 件`);
     }
   }, []);
 
@@ -168,14 +170,15 @@ export default function App() {
           file: `${result.copiedCount} 件コピー後に中断しました。`
         }));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       setProgress((current) => ({
         ...current,
         active: true,
         status: 'エラーが発生しました',
-        file: error.message
+        file: errorMessage
       }));
-      showErrorToast(`コピーエラー: ${error.message}`);
+      showErrorToast(`コピーエラー: ${errorMessage}`);
     } finally {
       setIsCopying(false);
       await updateDirectory('dest', destPath);
@@ -335,4 +338,4 @@ export default function App() {
       </div>
     </>
   );
-}
+};

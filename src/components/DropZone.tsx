@@ -1,15 +1,15 @@
 import { useState, DragEvent } from 'react';
 
-interface DropZoneProps {
+type DropZoneProps = {
   id: string;
   icon: React.ComponentType<{ className?: string }>;
   onClick: () => void;
   onDrop: (path: string) => void;
   disabled: boolean;
-}
+};
 
-export default function DropZone({ id, icon: Icon, onClick, onDrop, disabled }: DropZoneProps) {
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
+export const DropZone = ({ id, icon: Icon, onClick, onDrop, disabled }: DropZoneProps) => {
+  const [isDragOver, setIsDragOver] = useState(false);
 
   return (
     <div
@@ -36,4 +36,4 @@ export default function DropZone({ id, icon: Icon, onClick, onDrop, disabled }: 
       <span className="drop-text">フォルダをドラッグ＆ドロップ<br />またはクリックして選択</span>
     </div>
   );
-}
+};

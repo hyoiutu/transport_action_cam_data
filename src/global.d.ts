@@ -1,24 +1,25 @@
-interface FileInfo {
+type FileInfo = {
   name: string;
   path: string;
   size: number;
   type: 'video' | 'image';
   creationDate: string;
   dateSource: string;
-}
+};
 
-interface CopyProgressData {
+type CopyProgressData = {
   status: 'copying' | 'completed' | 'cancelled';
   copiedCount: number;
   totalFiles: number;
   currentFile: string;
-}
+};
 
-interface CopyErrorData {
+type CopyErrorData = {
   fileName: string;
   error: string;
-}
+};
 
+// windowオブジェクトへのグローバル拡張はinterfaceの宣言マージが必要なためtypeにできない
 interface Window {
   api: {
     selectDirectory: (defaultPath?: string) => Promise<string | null>;

@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 let mainWindow: BrowserWindow | null = null;
 let isCancelling = false;
 
-function createWindow() {
+const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -33,7 +33,7 @@ function createWindow() {
 
   // 必要に応じて開発者ツールを開く
   // mainWindow.webContents.openDevTools();
-}
+};
 
 app.whenReady().then(() => {
   createWindow();
@@ -54,6 +54,7 @@ ipcMain.handle('select-directory', async (_, defaultPath: string | undefined) =>
   if (!mainWindow) return null;
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory'],
+    // 空文字列は「未選択」を表すため、??ではなく||で明示的にundefinedへフォールバックする
     defaultPath: defaultPath || undefined
   });
   if (result.canceled) {
@@ -63,14 +64,14 @@ ipcMain.handle('select-directory', async (_, defaultPath: string | undefined) =>
   }
 });
 
-interface FileInfo {
+export type FileInfo = {
   name: string;
   path: string;
   size: number;
   type: 'video' | 'image';
   creationDate: string;
   dateSource: string;
-}
+};
 
 // 2. ディレクトリ内のファイルスキャン
 ipcMain.handle('scan-directory', async (_, dirPath: string) => {
@@ -103,8 +104,10 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
       if (isVideo) {
         try {
           const metadata = await musicMetadata.parseFile(filePath);
-          const common = metadata.common as any;
-          if (common && common.creation_time) {
+          // music-metadataの型定義にはcreation_timeが含まれないが、
+          // 一部のコンテナ形式では実際に付与されるため拡張型でキャストする
+          const common = metadata.common as typeof metadata.common & { creation_time?: string };
+          if (common.creation_time) {
             creationDate = new Date(common.creation_time);
             dateSource = 'metadata';
           }
@@ -129,6 +132,7 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
       // メタデータから取得できなかった場合のフォールバック
       if (!creationDate || isNaN(creationDate.getTime())) {
         // mtime と birthtime のうち、古い方を採用するなどの安全策
+        // birthtimeMsが0（未サポート環境）の場合もフォールバックしたいため??ではなく||を使用する
         const fileTime = Math.min(stats.birthtimeMs || stats.mtimeMs, stats.mtimeMs);
         creationDate = new Date(fileTime);
         dateSource = 'file_system_fallback';
@@ -165,10 +169,24 @@ ipcMain.handle('cancel-copy', () => {
   return true;
 });
 
-interface StartCopyArgs {
+export type StartCopyArgs = {
   files: FileInfo[];
   destinationDir: string;
-}
+};
+
+export type CopyProgressData = {
+  status: 'copying' | 'completed' | 'cancelled';
+  copiedCount: number;
+  totalFiles: number;
+  currentFile: string;
+};
+
+export type CopyErrorData = {
+  fileName: string;
+  error: string;
+};
+
+const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
 // 4. ファイルコピーの実行
 ipcMain.handle('start-copy', async (_, { files, destinationDir }: StartCopyArgs) => {
@@ -233,11 +251,11 @@ ipcMain.handle('start-copy', async (_, { files, destinationDir }: StartCopyArgs)
         totalFiles,
         currentFile: file.name
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`Error copying file ${file.name}:`, err);
       mainWindow.webContents.send('copy-error', {
         fileName: file.name,
-        error: err.message
+        error: getErrorMessage(err)
       });
     }
   }

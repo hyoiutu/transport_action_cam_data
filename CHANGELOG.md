@@ -14,6 +14,20 @@
 
 ## 変更履歴
 
+### [2026-07-04] rules.mdの規約とプロダクトコードの乖離解消
+* **修正の動機・概要**:
+  - コーディング規約（rules.md）の更新後、プロダクトコード側が追従できていなかったため、既存の規約に合わせてリファクタリングを実施。Red-Green-Refactoringに則り、既存の単体・E2Eテストが通ることを確認しながら修正した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `main.ts`: `createWindow` を関数宣言からアロー関数に変更。`FileInfo` / `StartCopyArgs` を `interface` から `type` に変更し、`CopyProgressData` / `CopyErrorData` を新設してexport。`as any` を廃止し、music-metadataの型を拡張した最小限の `as` キャストに置き換え。`catch (err: any)` を `catch (err: unknown)` とし、共通の `getErrorMessage` でメッセージを安全に取得するよう修正。
+    - `preload.ts`: 各APIの `any` 引数を `main.ts` からimportした `FileInfo` / `CopyProgressData` / `CopyErrorData` 型に置き換え。
+    - `src/global.d.ts`: `FileInfo` / `CopyProgressData` / `CopyErrorData` を `type` に変更（`Window` はグローバル宣言マージが必要なため `interface` を維持）。
+    - `src/App.tsx`, `src/components/DropZone.tsx`, `src/components/FileCard.tsx`: `export default function` を `export const ... = () => {}` （named export・アロー関数）に変更。`interface` を `type` に変更。`catch (error: any)` を `catch (error: unknown)` + `getErrorMessage` に変更。型推論が効く `useState` の冗長なジェネリクスを削除。`?.length || 0` を `?.length ?? 0` に変更（意味が変わらない箇所のみ）。
+    - `src/main.tsx`: `App` のimportをdefault importからnamed importに変更。
+  - **README.md**: 変更なし
+  - **仕様書**: 変更なし（rules.md自体は今回変更していないため）
+  - **テスト**: `tests/react-integration.spec.ts` のassertionをnamed import形式に更新。
+
 ### [2026-07-04] auto-commitスキルのClaude Code対応
 * **修正の動機・概要**:
   - `auto-commit` スキルは元々 Google Antigravity 環境向けに設計されていたが、SKILL.md のフロントマター形式が Claude Code のスキル仕様とも互換性があったため、Claude Code からも `/auto-commit` として呼び出せるように対応した。実体は1箇所のみとし、二重管理を避けるためシンボリックリンクで対応。
