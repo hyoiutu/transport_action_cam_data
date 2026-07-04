@@ -14,6 +14,21 @@
 
 ## 変更履歴
 
+### [2026-07-04] SOLID原則に基づくsrc/App.tsxのリファクタリング
+* **修正の動機・概要**:
+  - rules.mdに追加したSOLID原則のうち、SRP（単一責任の原則）とDIP（依存性逆転の原則）に照らすと、`src/App.tsx`はディレクトリスキャン・コピー実行という2つのビジネスロジックと、`window.api`という具象のElectron APIへの直接依存、および描画処理が1つのコンポーネントに混在していた。カスタムhooksへ抽出し、コンポーネントを「hooksの合成＋描画」という単一の責任に絞った。
+  - OCP・LSP・ISPについても既存コードを確認したが、`FileCard`のvideo/image分岐（2種類固定）へOCP的な抽象化を導入するのはYAGNIに反すると判断し見送った。ISP・LSPに該当する明確な違反は見つからなかったため対応不要と判断した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `src/utils/errorHandling.ts`: `getErrorMessage` / `showErrorToast` を`App.tsx`から抽出（新規作成、複数hooksからの重複利用のためDRYの観点でも共通化）。
+    - `src/hooks/useDirectoryScan.ts`: `srcPath` / `destPath` / `srcFiles` / `destFiles` / `scanInfo` の状態と `updateDirectory`（`window.api.scanDirectory`のラップ）を抽出（新規作成）。
+    - `src/hooks/useCopyOperation.ts`: `isCopying` / `progress` の状態と `startCopy`（`window.api.startCopy`等のラップ）を抽出（新規作成）。
+    - `src/App.tsx`: 上記2つのhooksを利用する形に書き換え、状態管理・API呼び出しロジックを大幅に削減（353行→223行）。振る舞い・DOM構造・E2Eテストで参照されるid等は変更していない。
+    - `src/tests/module-format.spec.ts`: ESMチェック対象ファイルに新規作成した3ファイルを追加。
+  - **README.md**: 変更なし
+  - **仕様書**: 変更なし
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:e2e`（全6テスト成功、実アプリでのスキャン・コピー・キャンセル動作を確認）で動作確認済み。
+
 ### [2026-07-04] コーディング規約にSOLID原則を追加
 * **修正の動機・概要**:
   - [参考記事](https://zenn.dev/koki_tech/articles/361bb8f2278764)を参考に、React/TypeScriptにおけるSOLID原則（SRP, OCP, LSP, ISP, DIP）をrules.mdに追加。コード例はプロジェクトの既存規約（`type`使用、`any`不使用等）に合わせて書き換えた。
