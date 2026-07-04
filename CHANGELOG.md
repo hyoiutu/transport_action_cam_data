@@ -14,6 +14,26 @@
 
 ## 変更履歴
 
+### [2026-07-05] electron/配下の単体テスト追加とSRPリファクタリング
+* **修正の動機・概要**:
+  - `electron/`配下（`main.ts`, `preload.ts`）だけがこれまでのリファクタリング・テスト整備の対象から漏れていた。原因を調査した結果、(1) `vite.config.ts`のVitest `include`が`src/**/*.tests.*`のみで`electron/`に届いていなかったこと、(2) `test_rules.md`のルール6が`src/components`等のみを列挙し`electron/`に触れていなかったこと、(3) `main.ts`のIPCハンドラが`ipcMain.handle()`に匿名関数として登録されexportされておらずテストしにくい構造だったこと、の3点が原因と判明した。(1)(2)を修正した上で、テスト→リファクタリングの順で対応した（Red-Green-Refactor）。
+  - テスト作成の過程で、`start-copy`のコピー処理ループにawaitが存在せず同期的に完走するため、`cancel-copy`によるキャンセルが実行中のコピーには実質反映されない（`if (isCancelling)`分岐が到達不能）ことが判明した。ユーザーと協議の上、今回は修正せず既知の制約として現状仕様のままテスト・コードコメントに残すことで合意した。
+  - `exif-parser`（型定義のないCJSパッケージ）が`createRequire`経由で読み込まれておりVitestの`vi.mock`が効かないことが判明したため、通常の`import`文＋独自の型宣言ファイルに変更した（実行時の動作は変更なし、ビルド・E2Eで確認済み）。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `vite.config.ts`: Vitestの`test.include`に`electron/**/*.tests.*`を追加。
+    - `electron/main/exif-parser.d.ts`: `exif-parser`用の型宣言を新規作成（`create`/`parse`/`DateTimeOriginal`のみを最小限に型付け）。
+    - `electron/main/main.ts`: `createRequire`経由の読み込みを通常の`import exifParser from 'exif-parser'`に変更。`scan-directory`のロジックを`fileScanner.ts`（内部で`dateResolution.ts`を利用）へ、ファイル名衝突回避ロジックを`fileCopier.ts`へ委譲し、IPCハンドラの登録・ウィンドウ管理・コピー進捗イベント送出・キャンセルフラグ管理のみを担当する薄いオーケストレーション層に整理（SRP対応）。型定義は`electron/main/types.ts`へ移動し、`main.ts`から再exportして`preload.ts`側のimportパスは変更不要にした。
+    - `electron/main/types.ts` / `dateResolution.ts` / `fileScanner.ts` / `fileCopier.ts`: 新規作成。
+    - `tsconfig.main.json`: `include`に新規ファイルを追加。
+    - `electron/main/__tests__/main.tests.ts`: `fileScanner`/`fileCopier`をモック化した、IPCハンドラの配線（select-directory, scan-directoryへの委譲, cancel-copy, start-copyの進捗・エラー処理）に関するテストに再構成。
+    - `electron/main/__tests__/dateResolution.tests.ts` / `fileScanner.tests.ts` / `fileCopier.tests.ts`: 新規作成。日時解決・ディレクトリスキャン・ファイル名衝突回避それぞれの全分岐を網羅。
+    - `electron/preload/__tests__/preload.tests.ts`: 新規作成。`window.api`として公開される各メソッドとイベント購読・解除を検証。
+    - `src/tests/module-format.spec.ts`: ESMチェック対象に新規ファイルを追加。
+  - **test_rules.md**: ルール6に`electron/main/` / `electron/preload/`を追記し、未列挙のディレクトリを追加した場合はルール自体を更新する旨を明記。
+  - **README.md / 仕様書**: 変更なし
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:unit`（13ファイル・96テスト全て成功）, `npm run test:e2e`（全6テスト成功、実アプリでのスキャン・コピー・重複回避を確認）で動作確認済み。
+
 ### [2026-07-05] 残りのユニットへの単体テスト追加
 * **修正の動機・概要**:
   - 前回セットアップした単体テスト環境を用いて、残りの対象（`useDirectoryScan`, `useCopyOperation`, `FileCard`, `GalleryGrid`, `PreviewModal`, `errorHandling`）にtest_rules.mdのルール（AAAパターン・全分岐網羅・疎結合）に沿ったテストを追加した。

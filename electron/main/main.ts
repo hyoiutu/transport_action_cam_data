@@ -1,27 +1,18 @@
 import fs from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
-import * as musicMetadata from 'music-metadata';
+import { resolveCollisionFreeFilePath } from './fileCopier.js';
+import { scanDirectory } from './fileScanner.js';
+import type { StartCopyArgs } from './types.js';
 
-const cjsRequire = createRequire(import.meta.url);
-const exifParser = cjsRequire('exif-parser');
+export type { CopyErrorData, CopyProgressData, FileInfo, StartCopyArgs } from './types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 let isCancelling = false;
-
-const JST_OFFSET_HOURS = 9;
-const MINUTES_PER_HOUR = 60;
-const SECONDS_PER_MINUTE = 60;
-const MILLISECONDS_PER_SECOND = 1000;
-
-const DATE_SOURCE_METADATA = 'metadata';
-const DATE_SOURCE_FILE_SYSTEM = 'file_system';
-const DATE_SOURCE_FILE_SYSTEM_FALLBACK = 'file_system_fallback';
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -73,104 +64,9 @@ ipcMain.handle('select-directory', async (_, defaultPath: string | undefined) =>
   }
 });
 
-export type FileInfo = {
-  name: string;
-  path: string;
-  size: number;
-  type: 'video' | 'image';
-  creationDate: string;
-  dateSource: string;
-};
-
 // 2. ディレクトリ内のファイルスキャン
 ipcMain.handle('scan-directory', async (_, dirPath: string) => {
-  if (!dirPath || !fs.existsSync(dirPath)) {
-    return [];
-  }
-
-  const files: FileInfo[] = [];
-  const allowedVideoExts = ['.mp4', '.mov', '.avi', '.mkv'];
-  const allowedImageExts = ['.jpg', '.jpeg', '.png'];
-
-  try {
-    const list = fs.readdirSync(dirPath, { withFileTypes: true });
-
-    for (const dirent of list) {
-      if (dirent.isDirectory()) continue; // サブディレクトリはスキャンしない（ミニマム対応）
-
-      const ext = path.extname(dirent.name).toLowerCase();
-      const isVideo = allowedVideoExts.includes(ext);
-      const isImage = allowedImageExts.includes(ext);
-
-      if (!isVideo && !isImage) continue;
-
-      const filePath = path.join(dirPath, dirent.name);
-      const stats = fs.statSync(filePath);
-
-      let creationDate: Date | null = null;
-      let dateSource = DATE_SOURCE_FILE_SYSTEM;
-
-      if (isVideo) {
-        try {
-          const metadata = await musicMetadata.parseFile(filePath);
-          // music-metadataの型定義にはcreation_timeが含まれないが、
-          // 一部のコンテナ形式では実際に付与されるため拡張型でキャストする
-          // biome-ignore lint/style/useNamingConvention: music-metadataが実際に返すプロパティ名（snake_case）に合わせる必要がある
-          const common = metadata.common as typeof metadata.common & { creation_time?: string };
-          if (common.creation_time) {
-            creationDate = new Date(common.creation_time);
-            dateSource = DATE_SOURCE_METADATA;
-          }
-        } catch (e) {
-          console.warn(`Failed to parse video metadata for ${dirent.name}:`, e);
-        }
-      } else if (isImage) {
-        try {
-          const buffer = fs.readFileSync(filePath);
-          const parser = exifParser.create(buffer);
-          const result = parser.parse();
-          if (result.tags && result.tags.DateTimeOriginal) {
-            // DateTimeOriginalは秒単位のエポックタイムスタンプの場合がある
-            creationDate = new Date(result.tags.DateTimeOriginal * MILLISECONDS_PER_SECOND);
-            dateSource = DATE_SOURCE_METADATA;
-          }
-        } catch (e) {
-          console.warn(`Failed to parse image EXIF for ${dirent.name}:`, e);
-        }
-      }
-
-      // メタデータから取得できなかった場合のフォールバック
-      if (!creationDate || isNaN(creationDate.getTime())) {
-        // mtime と birthtime のうち、古い方を採用するなどの安全策
-        // birthtimeMsが0（未サポート環境）の場合もフォールバックしたいため??ではなく||を使用する
-        const fileTime = Math.min(stats.birthtimeMs || stats.mtimeMs, stats.mtimeMs);
-        creationDate = new Date(fileTime);
-        dateSource = DATE_SOURCE_FILE_SYSTEM_FALLBACK;
-      }
-
-      // 日本時間（JST）基準で YYYY-MM-DD の日付文字列を作成
-      const jstOffset = JST_OFFSET_HOURS * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
-      const jstDate = new Date(creationDate.getTime() + jstOffset);
-      const year = jstDate.getUTCFullYear();
-      const month = String(jstDate.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(jstDate.getUTCDate()).padStart(2, '0');
-      const formattedDate = `${year}-${month}-${day}`; // YYYY-MM-DD 形式に変更
-
-      files.push({
-        name: dirent.name,
-        path: filePath,
-        size: stats.size,
-        type: isVideo ? 'video' : 'image',
-        creationDate: formattedDate,
-        dateSource: dateSource
-      });
-    }
-  } catch (err) {
-    console.error(`Error scanning directory ${dirPath}:`, err);
-    throw err;
-  }
-
-  return files;
+  return scanDirectory(dirPath);
 });
 
 // 3. キャンセル要求の受付
@@ -178,23 +74,6 @@ ipcMain.handle('cancel-copy', () => {
   isCancelling = true;
   return true;
 });
-
-export type StartCopyArgs = {
-  files: FileInfo[];
-  destinationDir: string;
-};
-
-export type CopyProgressData = {
-  status: 'copying' | 'completed' | 'cancelled';
-  copiedCount: number;
-  totalFiles: number;
-  currentFile: string;
-};
-
-export type CopyErrorData = {
-  fileName: string;
-  error: string;
-};
 
 const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
@@ -212,6 +91,9 @@ ipcMain.handle('start-copy', async (_, { files, destinationDir }: StartCopyArgs)
   let copiedCount = 0;
 
   for (let i = 0; i < totalFiles; i++) {
+    // 補足: このループには await がなく同期的に完走するため、cancel-copy による
+    // isCancelling=true が反映される余地がなく、この分岐は現状の実装では到達不能。
+    // 既知の制約として修正せず現状仕様のまま残す（ユーザーと合意済み）。
     if (isCancelling) {
       mainWindow.webContents.send('copy-progress', {
         status: 'cancelled',
@@ -237,19 +119,7 @@ ipcMain.handle('start-copy', async (_, { files, destinationDir }: StartCopyArgs)
         fs.mkdirSync(targetSubDir, { recursive: true });
       }
 
-      // 重複ファイル名の競合回避処理
-      let targetFileName = file.name;
-      let targetFilePath = path.join(targetSubDir, targetFileName);
-      let counter = 1;
-
-      const ext = path.extname(file.name);
-      const baseName = path.basename(file.name, ext);
-
-      while (fs.existsSync(targetFilePath)) {
-        targetFileName = `${baseName}_${counter}${ext}`;
-        targetFilePath = path.join(targetSubDir, targetFileName);
-        counter++;
-      }
+      const targetFilePath = resolveCollisionFreeFilePath(targetSubDir, file.name);
 
       // ファイルコピー (大きなファイルにも対応できるようストリームまたは単純なcopyFileSync)
       fs.copyFileSync(file.path, targetFilePath);

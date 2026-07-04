@@ -16,6 +16,10 @@ test.describe('TS/JSのモジュールに関するテスト', () => {
 
     const files = [
       'electron/main/main.ts',
+      'electron/main/types.ts',
+      'electron/main/dateResolution.ts',
+      'electron/main/fileScanner.ts',
+      'electron/main/fileCopier.ts',
       'electron/preload/preload.ts',
       'vite.config.ts',
       'src/main.tsx',
