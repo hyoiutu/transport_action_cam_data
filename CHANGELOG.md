@@ -14,6 +14,19 @@
 
 ## 変更履歴
 
+### [2026-07-04] Biomeによるフォーマット・Lintの自動化
+* **修正の動機・概要**:
+  - rules.mdのコーディング規約をツールで機械的に担保するため、Biomeを導入。あわせてファイル保存時のフォーマット（VSCode）とコミット時のLint（husky + lint-staged）を自動化した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `biome.json`: rules.mdの規約のうちBiomeで表現できるもの（default export禁止、アロー関数使用、interface→type、any禁止、||→??、型推論できる注釈の省略、マジックナンバー検知、ネスト三項演算子禁止、自己閉じタグ、命名規則、未使用変数・引数検知、Hooks依存配列、importソート）を設定。対象は`src/**`, `tests/**`, `preload.ts`, `style.css`（`main.ts`は対象外）。`src/global.d.ts`の`Window`インターフェースはグローバル宣言マージのため`useConsistentTypeDefinitions`を`biome-ignore`コメント付きで除外。
+      - 検証の過程で、当初設定していた`noImplicitBoolean`がrules.mdの意図（boolean属性値の省略を推奨）と逆方向（明示的な`={true}`を強制）のルールだったことが判明したため設定から除外した。
+    - `package.json`: `lint` / `lint:fix` スクリプトを追加。`husky` / `lint-staged` を devDependencies に追加し、`prepare`スクリプトと`lint-staged`設定（対象範囲はbiome.jsonと同一）を追加。
+    - `.husky/pre-commit`: `npx lint-staged` を実行するフックを追加。
+    - `.vscode/settings.json` / `.vscode/extensions.json`: Biome拡張機能によるファイル保存時フォーマットとimport整理を有効化。
+  - **README.md**: 「開発メモ」にBiomeによるLint/Formatの運用方法（手動実行・保存時フォーマット・コミット時Lint）を追記。
+  - **仕様書**: 変更なし
+
 ### [2026-07-04] rules.mdの規約とプロダクトコードの乖離解消
 * **修正の動機・概要**:
   - コーディング規約（rules.md）の更新後、プロダクトコード側が追従できていなかったため、既存の規約に合わせてリファクタリングを実施。Red-Green-Refactoringに則り、既存の単体・E2Eテストが通ることを確認しながら修正した。

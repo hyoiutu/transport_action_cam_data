@@ -73,6 +73,10 @@
 - `npm run build` でレンダラーのビルド (`vite build`) およびメインプロセス等のコンパイル (`tsc -p tsconfig.main.json`) を行い、`npm run test:e2e` でビルド後にPlaywrightを実行します。
 - Vitest の対象は `src/**/*.tests.*` に限定します。単体テストは `src/` 配下に `*.tests.*` 形式で置いてください。
 - `tests/` 配下は Playwright の E2E テスト用です。
+- **Lint / Format ([Biome](https://biomejs.dev/))**: `rules.md` のコーディング規約に基づき `biome.json` を設定しています。対象は `src/**`, `tests/**`, `preload.ts`, `style.css`（`main.ts` は対象外）。
+  - `npm run lint` / `npm run lint:fix` で手動実行できます。
+  - VSCodeでは `.vscode/settings.json` によりBiome拡張機能でのファイル保存時フォーマットが有効になります（要 `biomejs.biome` 拡張機能）。
+  - `git commit` 時には husky + lint-staged により、ステージされた対象ファイルに対して自動的に `biome lint` が実行され、エラーがあるとコミットがブロックされます。
 
 ---
 

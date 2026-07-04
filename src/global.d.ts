@@ -19,7 +19,7 @@ type CopyErrorData = {
   error: string;
 };
 
-// windowオブジェクトへのグローバル拡張はinterfaceの宣言マージが必要なためtypeにできない
+// biome-ignore lint/style/useConsistentTypeDefinitions: windowオブジェクトへのグローバル拡張はinterfaceの宣言マージが必要なためtypeにできない
 interface Window {
   api: {
     selectDirectory: (defaultPath?: string) => Promise<string | null>;

@@ -10,7 +10,10 @@
     "build:main": "tsc -p tsconfig.main.json",
     "build": "npm run build:renderer && npm run build:main",
     "test:e2e": "npm run build && playwright test",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +26,7 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.2",
     "@playwright/test": "^1.61.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -31,8 +35,16 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
     "electron": "^42.4.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "typescript": "^6.0.3",
     "vite": "^5.4.21",
     "vitest": "^4.1.9"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": "biome lint",
+    "tests/**/*.ts": "biome lint",
+    "preload.ts": "biome lint",
+    "style.css": "biome lint"
   }
 }
