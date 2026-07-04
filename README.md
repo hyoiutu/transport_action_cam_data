@@ -73,3 +73,16 @@
 - `npm run build` でレンダラーのビルド (`vite build`) およびメインプロセス等のコンパイル (`tsc -p tsconfig.main.json`) を行い、`npm run test:e2e` でビルド後にPlaywrightを実行します。
 - Vitest の対象は `src/**/*.tests.*` に限定します。単体テストは `src/` 配下に `*.tests.*` 形式で置いてください。
 - `tests/` 配下は Playwright の E2E テスト用です。
+
+---
+
+## 🤖 AI向けカスタムスキル (Agent Skills)
+
+### 自動コミットスキル (`auto-commit`)
+AIエージェントが作業中にローカルファイルに変更を加えた際、自動的にコミット処理を行うためのカスタムスキルです。
+
+* **配置場所**: `.agents/skills/auto-commit/`
+* **動作ルール**: AIエージェントはローカルファイルの変更を検知すると、自動的に本スキルを起動します。
+* **コミット規約 ([commit_rules.md](file:///Users/fujiwalatex/LocalRepositories/github/transport_action_cam_data/commit_rules.md))**: プロジェクトルートにある `commit_rules.md` に従って、テストの実行、コミットメッセージの要約（1行程度）、コミット前のユーザー承認 (Y/N) などを実施します。
+* **注意**: このスキルを通じて `git push` が自動で実行されることは絶対にありません。
+
