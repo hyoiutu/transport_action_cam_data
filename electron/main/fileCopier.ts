@@ -21,13 +21,15 @@ export const resolveCollisionFreeFilePath = (targetDir: string, fileName: string
 };
 
 // 撮影日ごとのサブディレクトリ（YYYY-MM-DD）へファイルをコピーし、実際にコピーした先のパスを返す
-export const copyFileToDateDirectory = (file: FileInfo, destinationDir: string): string => {
+// 意図的に非同期のfs APIを使用する: コピーのたびにイベントループへ制御を戻すことで、
+// 呼び出し側（start-copyハンドラ）のループがcancel-copyのIPC呼び出しを処理できるようにする
+export const copyFileToDateDirectory = async (file: FileInfo, destinationDir: string): Promise<string> => {
   const targetSubDir = path.join(destinationDir, file.creationDate);
   if (!fs.existsSync(targetSubDir)) {
-    fs.mkdirSync(targetSubDir, { recursive: true });
+    await fs.promises.mkdir(targetSubDir, { recursive: true });
   }
 
   const targetFilePath = resolveCollisionFreeFilePath(targetSubDir, file.name);
-  fs.copyFileSync(file.path, targetFilePath);
+  await fs.promises.copyFile(file.path, targetFilePath);
   return targetFilePath;
 };

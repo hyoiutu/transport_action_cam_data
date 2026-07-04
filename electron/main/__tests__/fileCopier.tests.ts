@@ -4,8 +4,10 @@ import type { FileInfo } from '../../types/domain.js';
 vi.mock('node:fs', () => ({
   default: {
     existsSync: vi.fn(),
-    mkdirSync: vi.fn(),
-    copyFileSync: vi.fn()
+    promises: {
+      mkdir: vi.fn(),
+      copyFile: vi.fn()
+    }
   }
 }));
 
@@ -80,42 +82,42 @@ describe('copyFileToDateDirectoryに関するテスト', () => {
     vi.resetAllMocks();
   });
 
-  test('撮影日のサブディレクトリが存在しないとき、作成してからコピーする', () => {
+  test('撮影日のサブディレクトリが存在しないとき、作成してからコピーする', async () => {
     // Arrange
     vi.mocked(fs.existsSync).mockReturnValue(false);
     const file = createFileInfo();
 
     // Act
-    const result = copyFileToDateDirectory(file, '/dest');
+    const result = await copyFileToDateDirectory(file, '/dest');
 
     // Assert
-    expect(fs.mkdirSync).toHaveBeenCalledWith('/dest/2026-01-01', { recursive: true });
-    expect(fs.copyFileSync).toHaveBeenCalledWith('/src/a.mp4', '/dest/2026-01-01/a.mp4');
+    expect(fs.promises.mkdir).toHaveBeenCalledWith('/dest/2026-01-01', { recursive: true });
+    expect(fs.promises.copyFile).toHaveBeenCalledWith('/src/a.mp4', '/dest/2026-01-01/a.mp4');
     expect(result).toBe('/dest/2026-01-01/a.mp4');
   });
 
-  test('撮影日のサブディレクトリが既に存在するとき、作成しない', () => {
+  test('撮影日のサブディレクトリが既に存在するとき、作成しない', async () => {
     // Arrange
     vi.mocked(fs.existsSync).mockImplementation((target) => String(target) === '/dest/2026-01-01');
     const file = createFileInfo();
 
     // Act
-    copyFileToDateDirectory(file, '/dest');
+    await copyFileToDateDirectory(file, '/dest');
 
     // Assert
-    expect(fs.mkdirSync).not.toHaveBeenCalled();
+    expect(fs.promises.mkdir).not.toHaveBeenCalled();
   });
 
-  test('同名ファイルが存在するとき、連番を付与した名前でコピーする', () => {
+  test('同名ファイルが存在するとき、連番を付与した名前でコピーする', async () => {
     // Arrange
     vi.mocked(fs.existsSync).mockImplementation((target) => String(target).endsWith('a.mp4'));
     const file = createFileInfo();
 
     // Act
-    const result = copyFileToDateDirectory(file, '/dest');
+    const result = await copyFileToDateDirectory(file, '/dest');
 
     // Assert
-    expect(fs.copyFileSync).toHaveBeenCalledWith('/src/a.mp4', '/dest/2026-01-01/a_1.mp4');
+    expect(fs.promises.copyFile).toHaveBeenCalledWith('/src/a.mp4', '/dest/2026-01-01/a_1.mp4');
     expect(result).toBe('/dest/2026-01-01/a_1.mp4');
   });
 });

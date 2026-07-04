@@ -29,9 +29,8 @@ export const startCopyHandler = async (_event: IpcMainInvokeEvent, { files, dest
   let copiedCount = 0;
 
   for (let i = 0; i < totalFiles; i++) {
-    // 補足: このループには await がなく同期的に完走するため、cancel-copy による
-    // isCancelling=true が反映される余地がなく、この分岐は現状の実装では到達不能。
-    // 既知の制約として修正せず現状仕様のまま残す（ユーザーと合意済み）。
+    // copyFileToDateDirectoryの内部でawaitするため、ここでイベントループへ制御が戻り、
+    // 実行中に届いたcancel-copyのIPC呼び出しがこのチェック時点で反映される。
     if (isCancelling()) {
       sendCopyProgress(mainWindow, { status: 'cancelled', copiedCount, totalFiles, currentFile: '' });
       return { status: 'cancelled', copiedCount };
@@ -41,7 +40,7 @@ export const startCopyHandler = async (_event: IpcMainInvokeEvent, { files, dest
     sendCopyProgress(mainWindow, { status: 'copying', copiedCount, totalFiles, currentFile: file.name });
 
     try {
-      copyFileToDateDirectory(file, destinationDir);
+      await copyFileToDateDirectory(file, destinationDir);
       copiedCount++;
       sendCopyProgress(mainWindow, { status: 'copying', copiedCount, totalFiles, currentFile: file.name });
     } catch (err: unknown) {

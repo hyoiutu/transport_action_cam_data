@@ -22,6 +22,7 @@ vi.mock('../../main/windowState.js', () => ({
 const fs = (await import('node:fs')).default;
 const { copyFileToDateDirectory } = await import('../../main/fileCopier.js');
 const { getMainWindow } = await import('../../main/windowState.js');
+const { setCancelling } = await import('../cancellationState.js');
 const { startCopyHandler } = await import('../startCopyHandler.js');
 
 const createFileInfo = (overrides: Partial<FileInfo> = {}): FileInfo => ({
@@ -75,7 +76,7 @@ describe('startCopyHandlerに関するテスト', () => {
   test('ファイルコピーに成功したとき、完了ステータスと進捗イベントを返す', async () => {
     // Arrange
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(copyFileToDateDirectory).mockReturnValue('/dest/2026-01-01/a.mp4');
+    vi.mocked(copyFileToDateDirectory).mockResolvedValue('/dest/2026-01-01/a.mp4');
     const files = [createFileInfo()];
 
     // Act
@@ -93,9 +94,7 @@ describe('startCopyHandlerに関するテスト', () => {
   test('コピー中にエラーが発生したファイルはcopy-errorイベントを送り、処理を継続する', async () => {
     // Arrange
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(copyFileToDateDirectory).mockImplementation(() => {
-      throw new Error('disk full');
-    });
+    vi.mocked(copyFileToDateDirectory).mockRejectedValue(new Error('disk full'));
     vi.spyOn(console, 'error').mockImplementation(() => {});
     const files = [createFileInfo()];
 
@@ -113,7 +112,7 @@ describe('startCopyHandlerに関するテスト', () => {
   test('複数ファイルを順にコピーし、copiedCountが積算される', async () => {
     // Arrange
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(copyFileToDateDirectory).mockReturnValue('/dest/2026-01-01/x');
+    vi.mocked(copyFileToDateDirectory).mockResolvedValue('/dest/2026-01-01/x');
     const files = [createFileInfo({ name: 'a.mp4' }), createFileInfo({ name: 'b.jpg', type: 'image' })];
 
     // Act
@@ -123,8 +122,25 @@ describe('startCopyHandlerに関するテスト', () => {
     expect(result).toEqual({ status: 'completed', copiedCount: 2 });
   });
 
-  // 補足: ループ内に await が存在せず同期的に完走するため、cancel-copy による
-  // isCancelling=true が start-copy 実行中に反映される余地がなく、
-  // 「if (isCancelling)」の分岐は現状の実装では到達不能。既知の制約として
-  // 修正せず現状仕様のまま残すことをユーザーと合意済み（テストも追加しない）。
+  test('コピー中にキャンセルされたとき、以降のファイルはコピーされずキャンセル状態を返す', async () => {
+    // Arrange
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(copyFileToDateDirectory).mockImplementation(async () => {
+      // 1件目のコピー完了と同時にcancel-copyのIPC呼び出しが届いたことを模倣する
+      setCancelling(true);
+      return '/dest/2026-01-01/x';
+    });
+    const files = [createFileInfo({ name: 'a.mp4' }), createFileInfo({ name: 'b.jpg', type: 'image' })];
+
+    // Act
+    const result = await startCopyHandler({} as never, { files, destinationDir: '/dest' });
+
+    // Assert
+    expect(result).toEqual({ status: 'cancelled', copiedCount: 1 });
+    expect(copyFileToDateDirectory).toHaveBeenCalledTimes(1);
+    expect(mockWindow.webContents.send).toHaveBeenCalledWith(
+      'copy-progress',
+      expect.objectContaining({ status: 'cancelled', copiedCount: 1 })
+    );
+  });
 });

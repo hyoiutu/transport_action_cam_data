@@ -70,7 +70,9 @@
   - 動画: `music-metadata` (純粋なJavaScript/Node.js実装で、外部バイナリ `ffprobe` のインストール不要)
   - 画像: `exif-parser` 等のNode.jsライブラリ
 - **アイコン**: `lucide-react` によるモダンなSVGアイコン
+- **Lint / Format**: Biome（`rules.md` のコーディング規約に基づく）
+- **git commit時の自動チェック**: husky + lint-staged による lint・型チェックの自動実行
 
 ## 5. 検証方針
-- **単体テスト**: Vitest を使用し、対象ファイルは `src/**/*.tests.*` に限定する。
-- **E2Eテスト**: Playwright を使用し、`tests/` 配下に配置する。
+- **単体テスト**: Vitest + Testing Library を使用し、対象ファイルは `src/**/*.tests.*` および `electron/**/*.tests.*` に限定する。テスト対象ファイルと同じディレクトリ内の `__tests__/` に配置する。ルールの詳細は `test_rules.md` を参照。
+- **E2Eテスト**: Playwright を使用し、`src/tests/` 配下に配置する。

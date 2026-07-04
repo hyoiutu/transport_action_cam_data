@@ -14,6 +14,20 @@
 
 ## 変更履歴
 
+### [2026-07-05] specs/system_specification.mdとの乖離解消・コピーキャンセル機能の実装修正
+* **修正の動機・概要**:
+  - AGENTS.mdの「実装, README.md, specs/以下の仕様書の乖離確認」ルールを、TypeScript移行以降のコミットで実質的に守れていなかった。原因は、`specs/`に`auto_commit_skill_specification.md`だけでなく実際のアプリ仕様書`system_specification.md`（TypeScript移行以前から存在）が既にあったにもかかわらず、以降の作業で`ls specs/`等による再確認を行わず「specs/にはauto-commitスキルの仕様書しかない」という古い認識のまま作業を続けてしまったこと。ユーザーからの指摘で発覚した。
+  - 実際に生じていた乖離は2点。(1) `system_specification.md`の「5. 検証方針」がテスト移動前の記載（`tests/`配下、`src/**/*.tests.*`のみ）のままだった。(2) 「2.2」に「コピー処理のキャンセル機能」と明記されているが、実装ではキャンセルが実質機能しない状態だった（`start-copy`のループにawaitがなく、cancel-copyのIPC呼び出しを処理する余地がなかったため）。前回はこれを「既知の制約」として実装ではなくドキュメント・テスト側に注記する対応にしていたが、仕様書との整合を優先し、今回は実装を修正してキャンセルが実際に機能するようにした。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `electron/main/fileCopier.ts`: `copyFileToDateDirectory`を非同期化し、`fs.copyFileSync`/`fs.mkdirSync`を`fs.promises.copyFile`/`fs.promises.mkdir`に変更。これによりコピーのたびにイベントループへ制御が戻り、`cancel-copy`のIPC呼び出しを処理できるようにした。
+    - `electron/ipc/startCopyHandler.ts`: `copyFileToDateDirectory`の呼び出しに`await`を追加。「到達不能」としていたコメントを、キャンセルが実際に反映される仕組みの説明に更新。
+    - `electron/main/__tests__/fileCopier.tests.ts` / `electron/ipc/__tests__/startCopyHandler.tests.ts`: 非同期化に伴うテスト更新に加え、コピー中にキャンセルされた場合に以降のファイルがコピーされず`cancelled`ステータスを返すことを検証するテストを新規追加。
+  - **仕様書**:
+    - `specs/system_specification.md`: 「5. 検証方針」を現状（`src/tests/`, `src/**/*.tests.*` + `electron/**/*.tests.*`, Testing Library, test_rules.md参照）に更新。「4. 技術スタック」にBiome/husky+lint-stagedを追記。
+  - **README.md**: 変更なし（既にsrc/tests/等の現状を反映済み）
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:unit`（55/55のelectronテスト成功、キャンセル関連の新規テスト含む）, `npm run test:e2e`（既存6テスト成功、非同期化による回帰なし）で動作確認済み。E2Eでのキャンセル操作自体のテストは、実ファイルコピー速度に依存し不安定になりやすいため見送り、決定論的な単体テストで検証した。
+
 ### [2026-07-05] IPCハンドラの分離・型定義の再配置・Biome検出限界の明文化
 * **修正の動機・概要**:
   - 前回のelectron/リファクタリングに対する指摘を受け、(1) IPCハンドラをelectron/ipc/以下へハンドラ毎に分離、(2) start-copyハンドラに残っていたファイルコピー実行ロジックの関数分離、(3) select-directoryの if/else を三項演算子に簡略化、(4) BrowserWindowのwidth/height（マジックナンバー）の定数化、(5) 型定義ファイル（domain.ts, exif-parser.d.ts）のelectron/types/への分離、を行った。
