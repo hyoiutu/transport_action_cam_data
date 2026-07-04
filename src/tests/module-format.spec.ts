@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const rootDir = path.resolve(__dirname, '..');
+const rootDir = path.resolve(__dirname, '../..');
 
 test.describe('TS/JSのモジュールに関するテスト', () => {
   test('アプリケーション及びテストコードにはESMが使われている', () => {
@@ -15,15 +15,15 @@ test.describe('TS/JSのモジュールに関するテスト', () => {
     expect(packageJson.type).toBe('module');
 
     const files = [
-      'main.ts',
-      'preload.ts',
+      'electron/main/main.ts',
+      'electron/preload/preload.ts',
       'vite.config.ts',
       'src/main.tsx',
       'src/App.tsx',
       'src/components/DropZone.tsx',
       'src/components/FileCard.tsx',
       'playwright.config.ts',
-      'tests/e2e.spec.ts'
+      'src/tests/e2e.spec.ts'
     ];
 
     for (const file of files) {

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Transport action camera data sorted by date YYYY-MM-DD",
   "type": "module",
-  "main": "dist/main.js",
+  "main": "dist/main/main.js",
   "scripts": {
     "start": "npm run build && electron .",
     "build:renderer": "vite build",
@@ -43,8 +43,7 @@
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": "biome lint",
-    "tests/**/*.ts": "biome lint",
-    "preload.ts": "biome lint",
+    "electron/**/*.ts": "biome lint",
     "style.css": "biome lint"
   }
 }

@@ -40,4 +40,4 @@
 ## 📝 開発プロジェクト固有の検証手順
 
 - **テストコマンド**: `npm run test:unit`
-- **リントコマンド**: `npm run lint`（Biome。対象は `src/**`, `tests/**`, `preload.ts`, `style.css`）
+- **リントコマンド**: `npm run lint`（Biome。対象は `src/**`, `electron/**`, `style.css`）

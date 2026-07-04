@@ -7,8 +7,8 @@ import { _electron as electron, expect, test } from '@playwright/test';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const srcDir = path.resolve(__dirname, '../sony_test_source');
-const destDir = path.resolve(__dirname, '../test_destination');
+const srcDir = path.resolve(__dirname, '../../sony_test_source');
+const destDir = path.resolve(__dirname, '../../test_destination');
 
 // テスト実行前のセットアップ（コピー先をクリーンに）
 test.beforeEach(() => {
@@ -25,7 +25,7 @@ test.describe('Action Cam Data Transporter E2Eテスト', () => {
   test.beforeEach(async () => {
     // Electron アプリを起動
     electronApp = await electron.launch({
-      args: [path.join(__dirname, '../dist/main.js')]
+      args: [path.join(__dirname, '../../dist/main/main.js')]
     });
     page = await electronApp.firstWindow();
     // 完全にロードされるのを待つ

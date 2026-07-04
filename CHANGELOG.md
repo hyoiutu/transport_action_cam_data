@@ -14,6 +14,38 @@
 
 ## 変更履歴
 
+### [2026-07-04] Electronメインプロセス関連ファイルをelectron/ディレクトリへ移動
+* **修正の動機・概要**:
+  - `main.ts` / `preload.ts` がリポジトリ直下（`src/`の外）に置かれ、レンダラー（`src/`）とプロセスの境界が分かりにくかったため、`electron/main/` / `electron/preload/` に分離した。`src/`配下（レンダラー）はそのままとした。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `main.ts` → `electron/main/main.ts`、`preload.ts` → `electron/preload/preload.ts` に移動（`git mv`）。
+    - `electron/main/main.ts`: preloadスクリプトと`index.html`への相対パス参照を新しいディレクトリ構成に合わせて修正（`../preload/preload.js`, `../index.html`）。
+    - `electron/preload/preload.ts`: 型importのパスを `./main.js` → `../main/main.js` に修正。
+    - `tsconfig.main.json`: `include`を新パスに更新し、出力構造を`dist/main/main.js` / `dist/preload/preload.js`にするため`rootDir: "electron"`を追加。
+    - `package.json`: `main`フィールドを`dist/main/main.js`に更新。`lint-staged`の対象を`preload.ts`から`electron/preload/**/*.ts`に更新。
+    - `biome.json`: lint対象を`preload.ts`から`electron/preload/**`に変更（`electron/main/**`は引き続き対象外）。
+    - `tests/module-format.spec.ts`: ESMチェック対象のファイルパスを新パスに更新。
+    - `tests/e2e.spec.ts`: Electron起動時のエントリポイントパスを`dist/main/main.js`に更新。
+  - **README.md**: 開発メモにElectronプロセス関連ファイルの配置（`electron/main/`, `electron/preload/`）とBiome対象範囲の変更を追記。
+  - **仕様書**: 変更なし
+  - `npm run build`でのdist出力構造、`npm run lint`でのスコープ、`npm run test:e2e`（実アプリ起動含む）で動作確認済み。
+
+### [2026-07-04] テストディレクトリの統合とlint対象範囲の是正
+* **修正の動機・概要**:
+  - `tests/`（Playwright）がリポジトリ直下にあり`src/`と分かれていたため、`src/tests/`に統合。あわせて`electron/main/`がlint対象から漏れていたため対象に含め、重複していた`tsconfig.json`/`biome.json`/`lint-staged`のスコープ定義を整理した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `tests/` → `src/tests/` に移動（`git mv`）。`e2e.spec.ts` / `module-format.spec.ts` の相対パス（`__dirname`基準）をディレクトリが1階層深くなった分修正。
+    - `playwright.config.ts`: `testDir`を`./src/tests`に変更。
+    - `tsconfig.json`: `include`から冗長になった`"tests"`を削除（`"src"`に包含されるため）。
+    - `biome.json`: lint対象を`["src/**", "electron/**", "style.css"]`に変更（`tests/**`は`src/**`に統合、`electron/main/**`を新たに対象化）。
+    - `package.json`: `lint-staged`の対象を`["src/**/*.{ts,tsx}", "electron/**/*.ts", "style.css"]`に整理。
+    - `electron/main/main.ts`: `electron/main/**`がlint対象になったことで検出された指摘を解消（import順・フォーマット、`function`式→アロー関数、マジックナンバー3箇所を`JST_OFFSET_HOURS`/`MINUTES_PER_HOUR`/`SECONDS_PER_MINUTE`/`MILLISECONDS_PER_SECOND`定数に抽出）。外部ライブラリの実プロパティ名に合わせるため意図的に残す`creation_time`（snake_case）と、意図的な`||`使用（空文字列・0のフォールバック）には理由を明記した`biome-ignore`コメントを付与。
+  - **README.md**: `src/tests/`への統合とBiome対象範囲の変更を反映。
+  - **仕様書**: 変更なし
+  - `npm run build`, `npm run lint`（指摘0件）, `npx tsc -p tsconfig.json --noEmit`（既存の無関係なエラー2件のみ）, `npm run test:e2e`（全6テスト成功）で動作確認済み。
+
 ### [2026-07-04] Biomeによるフォーマット・Lintの自動化
 * **修正の動機・概要**:
   - rules.mdのコーディング規約をツールで機械的に担保するため、Biomeを導入。あわせてファイル保存時のフォーマット（VSCode）とコミット時のLint（husky + lint-staged）を自動化した。

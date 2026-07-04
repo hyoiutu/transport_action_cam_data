@@ -1,8 +1,8 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import * as musicMetadata from 'music-metadata';
 
 const cjsRequire = createRequire(import.meta.url);
@@ -14,22 +14,27 @@ const __dirname = path.dirname(__filename);
 let mainWindow: BrowserWindow | null = null;
 let isCancelling = false;
 
+const JST_OFFSET_HOURS = 9;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+
 const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '../preload/preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
       webSecurity: false
     },
     titleBarStyle: 'hiddenInset', // macOS用のきれいなタイトルバー
-    backgroundColor: '#1e1e2e'  // 起動時のチラつき防止用の背景色
+    backgroundColor: '#1e1e2e' // 起動時のチラつき防止用の背景色
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  mainWindow.loadFile(path.join(__dirname, '../index.html'));
 
   // 必要に応じて開発者ツールを開く
   // mainWindow.webContents.openDevTools();
@@ -38,12 +43,12 @@ const createWindow = () => {
 app.whenReady().then(() => {
   createWindow();
 
-  app.on('activate', function () {
+  app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
-app.on('window-all-closed', function () {
+app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -54,7 +59,7 @@ ipcMain.handle('select-directory', async (_, defaultPath: string | undefined) =>
   if (!mainWindow) return null;
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory'],
-    // 空文字列は「未選択」を表すため、??ではなく||で明示的にundefinedへフォールバックする
+    // biome-ignore lint/nursery/useNullishCoalescing: 空文字列は「未選択」を表すため、??ではなく||で明示的にundefinedへフォールバックする
     defaultPath: defaultPath || undefined
   });
   if (result.canceled) {
@@ -106,6 +111,7 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
           const metadata = await musicMetadata.parseFile(filePath);
           // music-metadataの型定義にはcreation_timeが含まれないが、
           // 一部のコンテナ形式では実際に付与されるため拡張型でキャストする
+          // biome-ignore lint/style/useNamingConvention: music-metadataが実際に返すプロパティ名（snake_case）に合わせる必要がある
           const common = metadata.common as typeof metadata.common & { creation_time?: string };
           if (common.creation_time) {
             creationDate = new Date(common.creation_time);
@@ -121,7 +127,7 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
           const result = parser.parse();
           if (result.tags && result.tags.DateTimeOriginal) {
             // DateTimeOriginalは秒単位のエポックタイムスタンプの場合がある
-            creationDate = new Date(result.tags.DateTimeOriginal * 1000);
+            creationDate = new Date(result.tags.DateTimeOriginal * MILLISECONDS_PER_SECOND);
             dateSource = 'metadata';
           }
         } catch (e) {
@@ -139,7 +145,7 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
       }
 
       // 日本時間（JST）基準で YYYY-MM-DD の日付文字列を作成
-      const jstOffset = 9 * 60 * 60 * 1000;
+      const jstOffset = JST_OFFSET_HOURS * MINUTES_PER_HOUR * SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND;
       const jstDate = new Date(creationDate.getTime() + jstOffset);
       const year = jstDate.getUTCFullYear();
       const month = String(jstDate.getUTCMonth() + 1).padStart(2, '0');
