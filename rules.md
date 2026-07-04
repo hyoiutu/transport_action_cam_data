@@ -372,3 +372,139 @@ if (count > MAX_COUNT) {
   // ...
 }
 ```
+
+---
+
+# DRY（Don't Repeat Yourself）: 重複を避ける
+
+NG
+
+```typescript
+const user1Greeting = "Hello, Alice!";
+const user2Greeting = "Hello, Bob!";
+```
+
+OK
+
+```typescript
+const greetUser = (name: string) => `Hello, ${name}!`;
+const user1Greeting = greetUser("Alice");
+const user2Greeting = greetUser("Bob");
+```
+
+---
+
+# KISS（Keep It Simple, Stupid）: シンプルに保つ
+
+NG
+
+```typescript
+const calculateArea = (shape: 'rectangle' | 'circle', dimensions: number[]) => {
+  if (shape === 'rectangle') {
+    return dimensions[0] * dimensions[1];
+  } else if (shape === 'circle') {
+    return Math.PI * (dimensions[0] ** 2);
+  }
+};
+```
+
+OK
+
+```typescript
+const calculateRectangleArea = (width: number, height: number) => width * height;
+const calculateCircleArea = (radius: number) => Math.PI * (radius ** 2);
+```
+
+---
+
+# YAGNI（You Aren't Gonna Need It）: 今必要なことだけやる
+
+NG
+
+```typescript
+type User = {
+  name: string;
+  role: 'admin' | 'user';
+  permissions: string[];
+};
+
+const createUser = (name: string, role: 'admin' | 'user'): User => {
+  // 将来使うかもしれないと見越して権限分岐をあらかじめ実装するが、実際には現状全員同じ権限
+  const permissions = role === 'admin' ? ['read', 'write', 'delete'] : ['read'];
+  return { name, role, permissions };
+};
+```
+
+OK
+
+```typescript
+type User = {
+  name: string;
+  permissions: string[];
+};
+
+const createUser = (name: string): User => {
+  return { name, permissions: ['read', 'write'] };
+};
+```
+
+---
+
+# 車輪の再発明を避ける: 既存ライブラリやAPIを優先する
+
+NG
+
+```typescript
+// 自作のパス結合ユーティリティ
+const joinPaths = (dir: string, file: string) => {
+  return dir.endsWith('/') ? `${dir}${file}` : `${dir}/${file}`;
+};
+```
+
+OK
+
+```typescript
+import path from 'node:path';
+
+const filePath = path.join(dir, file);
+```
+
+---
+
+# 割れ窓の法則を避ける: 小さな問題（エラーや警告）を放置しない
+
+NG
+
+```typescript
+// eslint-disable-next-line -- TODO: 後で any と警告を修正する
+const data: any = fetchedData;
+```
+
+OK
+
+```typescript
+const data: UserInfo = fetchedData;
+```
+
+---
+
+# 名前重要: 意図の伝わる適切な命名を行う
+
+NG
+
+```typescript
+const c = 10;
+const calculateTotalAmountOfAllScannedFilesIncludingTaxes = (files: any[]) => {
+  // ...
+};
+```
+
+OK
+
+```typescript
+const fileCount = 10;
+const calculateTotalSize = (files: FileInfo[]) => {
+  // ...
+};
+```
+
