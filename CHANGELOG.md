@@ -14,6 +14,20 @@
 
 ## 変更履歴
 
+### [2026-07-04] コミット前の型チェックを必須化
+* **修正の動機・概要**:
+  - `npx tsc -p tsconfig.json --noEmit` によるレンダラー・テストコードの型チェックを、これまでAIエージェントが都度実行するかどうか明言しておらず、実行有無にばらつきがあった。ユーザーからの指摘を受け、テスト・リントと同様にコミット前に必ず実行し、エラーは無視せず解消するルールとして明文化・ツール化した。
+  - あわせて、この確認過程で発覚した既存の型エラー2件（`src/main.tsx`の`../style.css`副作用importの型宣言不足、`vite.config.ts`の`test`プロパティ型不一致）を解消した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `src/vite-env.d.ts`: `/// <reference types="vite/client" />` を追加し、CSSなどのアセットの副作用importを型解決できるようにした（新規作成）。
+    - `vite.config.ts`: `defineConfig` の import元を `vite` から `vitest/config` に変更し、Vitestの`test`設定オプションの型が正しく認識されるように修正。
+    - `package.json`: `typecheck` スクリプト（`tsc -p tsconfig.json --noEmit`）を追加。
+    - `.husky/pre-commit`: `npx lint-staged` に加え `npm run typecheck` を実行するよう追加。あわせて、いずれかのコマンドが失敗した際に後続コマンドの成否に関わらず全体の終了コードが0になってしまう不具合を防ぐため `set -e` を追加。
+  - **README.md**: 型チェックの実行方法とpre-commitフックでの自動実行について追記。
+  - **仕様書 / commit_rules.md / SKILL.md**: コミット前に実行必須のコマンドを「テスト・リント」から「テスト・リント・型チェック」に拡張し、`commit_rules.md`の検証手順一覧を参照する形に一般化（`specs/auto_commit_skill_specification.md` 2.3節、`commit_rules.md`、`.agents/skills/auto-commit/SKILL.md` 手順3を更新）。
+  - `npm run build`, `npm run lint`, `npm run typecheck`, `npm run test:e2e`（全6テスト成功）、および`.husky/pre-commit`を手動実行してlint失敗時に`set -e`により正しく中断されることを確認済み。
+
 ### [2026-07-04] Electronメインプロセス関連ファイルをelectron/ディレクトリへ移動
 * **修正の動機・概要**:
   - `main.ts` / `preload.ts` がリポジトリ直下（`src/`の外）に置かれ、レンダラー（`src/`）とプロセスの境界が分かりにくかったため、`electron/main/` / `electron/preload/` に分離した。`src/`配下（レンダラー）はそのままとした。

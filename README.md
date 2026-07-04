@@ -78,6 +78,7 @@
   - `npm run lint` / `npm run lint:fix` で手動実行できます。
   - VSCodeでは `.vscode/settings.json` によりBiome拡張機能でのファイル保存時フォーマットが有効になります（要 `biomejs.biome` 拡張機能）。
   - `git commit` 時には husky + lint-staged により、ステージされた対象ファイルに対して自動的に `biome lint` が実行され、エラーがあるとコミットがブロックされます。
+- **型チェック**: `npm run typecheck`（`tsc -p tsconfig.json --noEmit`）でレンダラー・テストコードの型チェックを行います。メインプロセス・プリロードは`npm run build`内の`tsc -p tsconfig.main.json`で担保されます。`git commit`時にはpre-commitフック（`.husky/pre-commit`）で自動実行され、エラーがあるとコミットがブロックされます。
 
 ---
 
