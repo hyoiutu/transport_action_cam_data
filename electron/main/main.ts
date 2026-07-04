@@ -19,6 +19,10 @@ const MINUTES_PER_HOUR = 60;
 const SECONDS_PER_MINUTE = 60;
 const MILLISECONDS_PER_SECOND = 1000;
 
+const DATE_SOURCE_METADATA = 'metadata';
+const DATE_SOURCE_FILE_SYSTEM = 'file_system';
+const DATE_SOURCE_FILE_SYSTEM_FALLBACK = 'file_system_fallback';
+
 const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -104,7 +108,7 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
       const stats = fs.statSync(filePath);
 
       let creationDate: Date | null = null;
-      let dateSource = 'file_system';
+      let dateSource = DATE_SOURCE_FILE_SYSTEM;
 
       if (isVideo) {
         try {
@@ -115,7 +119,7 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
           const common = metadata.common as typeof metadata.common & { creation_time?: string };
           if (common.creation_time) {
             creationDate = new Date(common.creation_time);
-            dateSource = 'metadata';
+            dateSource = DATE_SOURCE_METADATA;
           }
         } catch (e) {
           console.warn(`Failed to parse video metadata for ${dirent.name}:`, e);
@@ -128,7 +132,7 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
           if (result.tags && result.tags.DateTimeOriginal) {
             // DateTimeOriginalは秒単位のエポックタイムスタンプの場合がある
             creationDate = new Date(result.tags.DateTimeOriginal * MILLISECONDS_PER_SECOND);
-            dateSource = 'metadata';
+            dateSource = DATE_SOURCE_METADATA;
           }
         } catch (e) {
           console.warn(`Failed to parse image EXIF for ${dirent.name}:`, e);
@@ -141,7 +145,7 @@ ipcMain.handle('scan-directory', async (_, dirPath: string) => {
         // birthtimeMsが0（未サポート環境）の場合もフォールバックしたいため??ではなく||を使用する
         const fileTime = Math.min(stats.birthtimeMs || stats.mtimeMs, stats.mtimeMs);
         creationDate = new Date(fileTime);
-        dateSource = 'file_system_fallback';
+        dateSource = DATE_SOURCE_FILE_SYSTEM_FALLBACK;
       }
 
       // 日本時間（JST）基準で YYYY-MM-DD の日付文字列を作成

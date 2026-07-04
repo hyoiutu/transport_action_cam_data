@@ -1,34 +1,20 @@
 import {
   Aperture,
   Archive,
-  Calendar,
-  Database,
   DownloadCloud,
   Files,
   FolderInput,
   FolderOutput,
-  ImageOff,
   Play,
   Square,
-  UploadCloud,
-  X
+  UploadCloud
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DropZone } from './components/DropZone';
-import { FileCard } from './components/FileCard';
+import { GalleryGrid } from './components/GalleryGrid';
+import { PreviewModal } from './components/PreviewModal';
 import { useCopyOperation } from './hooks/useCopyOperation';
 import { useDirectoryScan } from './hooks/useDirectoryScan';
-
-const formatBytes = (bytes: number, decimals = 2): string => {
-  if (bytes === 0) return '0 Bytes';
-
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
-};
 
 export const App = () => {
   const [currentTab, setCurrentTab] = useState<'src' | 'dest'>('src');
@@ -58,10 +44,7 @@ export const App = () => {
     if (selectedPath) await updateDirectory(type, selectedPath);
   };
 
-  const previewFileUrl = useMemo(() => {
-    if (!previewFile) return '';
-    return `file://${previewFile.path}`;
-  }, [previewFile]);
+  const closePreview = (): void => setPreviewFile(null);
 
   return (
     <>
@@ -167,57 +150,13 @@ export const App = () => {
 
           <section className="gallery-container">
             <div className="gallery-grid" id="gallery-grid">
-              {files.length === 0 ? (
-                <div className="empty-state">
-                  <ImageOff />
-                  <p>
-                    {currentTab === 'src'
-                      ? '表示するファイルがありません。コピー元フォルダを選択してスキャンしてください。'
-                      : 'コピー先フォルダに動画や画像がありません。'}
-                  </p>
-                </div>
-              ) : (
-                files.map((file) => (
-                  <FileCard key={`${file.path}-${file.name}`} file={file} onClick={() => setPreviewFile(file)} />
-                ))
-              )}
+              <GalleryGrid files={files} currentTab={currentTab} onFileClick={setPreviewFile} />
             </div>
           </section>
         </main>
       </div>
 
-      <div className={`modal${previewFile ? ' show' : ''}`} id="preview-modal">
-        <div className="modal-backdrop" id="modal-backdrop" onClick={() => setPreviewFile(null)} />
-        <div className="modal-content">
-          <button className="modal-close" id="modal-close" onClick={() => setPreviewFile(null)}>
-            <X />
-          </button>
-          <div className="modal-body" id="modal-body">
-            {previewFile &&
-              (previewFile.type === 'video' ? (
-                <video src={previewFileUrl} controls autoPlay />
-              ) : (
-                <img src={previewFileUrl} alt={previewFile.name} />
-              ))}
-          </div>
-          <div className="modal-footer">
-            <div className="modal-meta-title" id="modal-meta-title">
-              {previewFile?.name || 'File Name'}
-            </div>
-            <div className="modal-meta-details">
-              <span id="modal-meta-date">
-                <Calendar />{' '}
-                {previewFile
-                  ? `撮影・作成日: ${previewFile.creationDate} (${previewFile.dateSource === 'metadata' ? 'メタデータ' : 'ファイルシステム'})`
-                  : 'Date'}
-              </span>
-              <span id="modal-meta-size">
-                <Database /> {previewFile ? `サイズ: ${formatBytes(previewFile.size)}` : 'Size'}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PreviewModal file={previewFile} onClose={closePreview} />
     </>
   );
 };

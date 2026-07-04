@@ -1,14 +1,29 @@
 import { Image, Video } from 'lucide-react';
+import { ComponentType, ReactNode } from 'react';
+import { formatBytes } from '../utils/format';
 
-const formatBytes = (bytes: number, decimals = 2): string => {
-  if (bytes === 0) return '0 Bytes';
+type MediaTypeConfig = {
+  icon: ComponentType<{ className?: string }>;
+  renderThumbnail: (fileUrl: string, file: FileInfo) => ReactNode;
+};
 
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+const renderVideoThumbnail = (fileUrl: string): ReactNode => (
+  <video className="thumb-image" src={`${fileUrl}#t=0.1`} preload="metadata" muted />
+);
 
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+const renderImageThumbnail = (fileUrl: string, file: FileInfo): ReactNode => (
+  <img className="thumb-image" src={fileUrl} loading="lazy" alt={file.name} />
+);
+
+const MEDIA_TYPE_CONFIG: Record<FileInfo['type'], MediaTypeConfig> = {
+  video: {
+    icon: Video,
+    renderThumbnail: renderVideoThumbnail
+  },
+  image: {
+    icon: Image,
+    renderThumbnail: renderImageThumbnail
+  }
 };
 
 type FileCardProps = {
@@ -18,17 +33,13 @@ type FileCardProps = {
 
 export const FileCard = ({ file, onClick }: FileCardProps) => {
   const fileUrl = `file://${file.path}`;
-  const Icon = file.type === 'video' ? Video : Image;
+  const { icon: Icon, renderThumbnail } = MEDIA_TYPE_CONFIG[file.type];
 
   return (
     <div className="file-card" onClick={onClick}>
       <div className="thumb-area">
-        {file.type === 'video' ? (
-          <video className="thumb-image" src={`${fileUrl}#t=0.1`} preload="metadata" muted />
-        ) : (
-          <img className="thumb-image" src={fileUrl} loading="lazy" alt={file.name} />
-        )}
-        <div className={`media-badge ${file.type === 'video' ? 'video' : 'image'}`}>
+        {renderThumbnail(fileUrl, file)}
+        <div className={`media-badge ${file.type}`}>
           <Icon />
         </div>
       </div>

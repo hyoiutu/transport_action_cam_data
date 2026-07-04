@@ -11,26 +11,32 @@ type DropZoneProps = {
 export const DropZone = ({ id, icon: Icon, onClick, onDrop, disabled }: DropZoneProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
+  const handleDragOver = (event: DragEvent<HTMLDivElement>): void => {
+    event.preventDefault();
+    if (!disabled) setIsDragOver(true);
+  };
+
+  const handleDragLeave = (): void => setIsDragOver(false);
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>): void => {
+    event.preventDefault();
+    setIsDragOver(false);
+    if (disabled || event.dataTransfer.files.length === 0) return;
+    // Electronのファイルオブジェクトには拡張プロパティとしてpathが存在します
+    const file = event.dataTransfer.files[0] as File & { path?: string };
+    if (file.path) {
+      onDrop(file.path);
+    }
+  };
+
   return (
     <div
       className={`drop-zone${isDragOver ? ' dragover' : ''}`}
       id={id}
       onClick={onClick}
-      onDragOver={(event: DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        if (!disabled) setIsDragOver(true);
-      }}
-      onDragLeave={() => setIsDragOver(false)}
-      onDrop={(event: DragEvent<HTMLDivElement>) => {
-        event.preventDefault();
-        setIsDragOver(false);
-        if (disabled || event.dataTransfer.files.length === 0) return;
-        // Electronのファイルオブジェクトには拡張プロパティとしてpathが存在します
-        const file = event.dataTransfer.files[0] as File & { path?: string };
-        if (file.path) {
-          onDrop(file.path);
-        }
-      }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <Icon className="drop-icon" />
       <span className="drop-text">

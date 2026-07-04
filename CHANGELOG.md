@@ -14,6 +14,24 @@
 
 ## 変更履歴
 
+### [2026-07-04] 追加のコード品質改善（OCP対応・共通化・JSX整理・マジックストリング定数化・状態の導出値化）
+* **修正の動機・概要**:
+  - 前回のSOLIDリファクタリングで一旦YAGNIを理由に見送っていた`FileCard`のOCP違反、`formatBytes`の重複、JSX内の複数行ロジック、文字列のマジックナンバー、連動するuseStateについて、人間からの指摘を受けて対応した。あわせてrules.mdに未記載だった「JSX内のロジック制限」「文字列のマジックナンバー定数化」の2ルールを追記した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `src/utils/format.ts`: `App.tsx`と`FileCard.tsx`に重複していた`formatBytes`を共通化（新規作成）。
+    - `src/components/FileCard.tsx`: `file.type`による分岐を`MEDIA_TYPE_CONFIG`（type毎の設定を持つRecord）に変更。新しいファイル種別を追加する際に既存の分岐を修正不要にした（OCP対応）。
+    - `src/components/GalleryGrid.tsx` / `src/components/PreviewModal.tsx`: `App.tsx`のJSX内にあった「ギャラリーの空状態/一覧表示」「プレビューモーダルのメディア種別分岐」をそれぞれ独立コンポーネントとして抽出（新規作成）。`App.tsx`のJSXは関数呼び出しと1行程度の式のみになるよう整理。
+    - `src/components/DropZone.tsx`: `onDragOver` / `onDragLeave` / `onDrop`のJSX内に直書きされていた複数行のイベントハンドラを、コンポーネント本体側の名前付き関数に外出し。
+    - `src/hooks/useDirectoryScan.ts`: `scanInfo`は実質`srcFiles`/`destFiles`の件数とスキャン中フラグから導出できる値だったため、独立した`useState`をやめ`useMemo`による導出値に変更。あわせて`window.srcFiles`/`window.destFiles`のグローバル読み取りに依存していたメッセージ組み立てロジックを、リアクティブなstateを直接参照する形に整理。
+    - `src/components/PreviewModal.tsx`: `previewFile.dateSource === 'metadata'`という文字列比較を`DATE_SOURCE_METADATA`定数に置き換え。
+    - `electron/main/main.ts`: `dateSource`に代入していた`'metadata'` / `'file_system'` / `'file_system_fallback'`をそれぞれ定数化（`file.type`の`'video'`/`'image'`は`FileInfo['type']`のUnion型で型チェッカーがtypoを検出できるため対象外とした）。
+  - **rules.md**: 「JSX内に複数行のロジックを書かない」「文字列のマジックナンバー（マジックストリング）も定数化する」の2ルールをNG/OK例つきで追加。
+  - **README.md**: 変更なし
+  - **仕様書**: 変更なし
+  - **テスト**: `src/tests/react-integration.spec.ts`（`FileCard`が`GalleryGrid`経由で利用される構成に追従）、`src/tests/module-format.spec.ts`（新規ファイルをESMチェック対象に追加）を更新。
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:e2e`（全6テスト成功）で動作確認済み。
+
 ### [2026-07-04] SOLID原則に基づくsrc/App.tsxのリファクタリング
 * **修正の動機・概要**:
   - rules.mdに追加したSOLID原則のうち、SRP（単一責任の原則）とDIP（依存性逆転の原則）に照らすと、`src/App.tsx`はディレクトリスキャン・コピー実行という2つのビジネスロジックと、`window.api`という具象のElectron APIへの直接依存、および描画処理が1つのコンポーネントに混在していた。カスタムhooksへ抽出し、コンポーネントを「hooksの合成＋描画」という単一の責任に絞った。

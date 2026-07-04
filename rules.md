@@ -273,6 +273,50 @@ OK
 
 ---
 
+# JSX内に複数行のロジックを書かない
+
+JSX（return文の中）に書いてよいのは関数呼び出しと1行程度の式（単純な三項演算子やテンプレートリテラル等）のみとする。複数行にわたる条件分岐やイベントハンドラの本体はコンポーネント本体側の関数として外に出す。
+
+NG
+
+```tsx
+return (
+  <div>
+    {items.length === 0 ? (
+      <p>Emptyです</p>
+    ) : (
+      items.map((item) => <Item key={item.id} item={item} />)
+    )}
+    <button
+      onClick={() => {
+        setCount((current) => current + 1);
+        logEvent('increment');
+      }}
+    >
+      +1
+    </button>
+  </div>
+);
+```
+
+OK
+
+```tsx
+const handleIncrement = () => {
+  setCount((current) => current + 1);
+  logEvent('increment');
+};
+
+return (
+  <div>
+    <ItemList items={items} />
+    <button onClick={handleIncrement}>+1</button>
+  </div>
+);
+```
+
+---
+
 # アロー関数を使用する
 
 NG
@@ -369,6 +413,30 @@ OK
 const MAX_COUNT = 10;
 
 if (count > MAX_COUNT) {
+  // ...
+}
+```
+
+---
+
+# 文字列のマジックナンバー（マジックストリング）も定数化する
+
+比較や分岐に使う文字列リテラルも、数値のマジックナンバーと同様に定数化する。ただしUnion型で表現され型チェッカーが誤り（typo）を検出できる値（例: `'video' | 'image'`のような限定されたリテラル型同士の比較）は対象外とする。
+
+NG
+
+```typescript
+if (file.dateSource === 'metadata') {
+  // ...
+}
+```
+
+OK
+
+```typescript
+const DATE_SOURCE_METADATA = 'metadata';
+
+if (file.dateSource === DATE_SOURCE_METADATA) {
   // ...
 }
 ```

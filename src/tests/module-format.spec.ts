@@ -22,9 +22,12 @@ test.describe('TS/JSのモジュールに関するテスト', () => {
       'src/App.tsx',
       'src/components/DropZone.tsx',
       'src/components/FileCard.tsx',
+      'src/components/GalleryGrid.tsx',
+      'src/components/PreviewModal.tsx',
       'src/hooks/useDirectoryScan.ts',
       'src/hooks/useCopyOperation.ts',
       'src/utils/errorHandling.ts',
+      'src/utils/format.ts',
       'playwright.config.ts',
       'src/tests/e2e.spec.ts'
     ];
