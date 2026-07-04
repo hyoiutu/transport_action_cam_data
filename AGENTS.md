@@ -11,3 +11,4 @@
   - またリファクタリングによる変更もCHANGELOG.mdに記載する
 - 人間からの指摘でコードを修正する場合、rules.mdに新しくルールを追加する
 - git commitはauto-commitスキル（.agents/skills/auto-commit/SKILL.md）を経由してのみ実行し、スキルを介さずに直接git commitを実行してはならない
+- 単体テスト・E2Eテストを作成または実行する場合はtest_rules.mdに記載されたルールに従う

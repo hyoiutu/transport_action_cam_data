@@ -39,6 +39,6 @@
 
 ## 📝 開発プロジェクト固有の検証手順
 
-- **テストコマンド**: `npm run test:unit`
+- **テストコマンド**: `npm run test:unit`（単体テスト作成・実行時は test_rules.md のルールに従うこと）
 - **リントコマンド**: `npm run lint`（Biome。対象は `src/**`, `electron/**`, `style.css`）
 - **型チェックコマンド**: `npm run typecheck`（レンダラー・テストコード対象。メインプロセス・プリロードは`npm run build`内の`tsc -p tsconfig.main.json`で担保）

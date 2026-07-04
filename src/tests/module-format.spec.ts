@@ -28,6 +28,7 @@ test.describe('TS/JSのモジュールに関するテスト', () => {
       'src/hooks/useCopyOperation.ts',
       'src/utils/errorHandling.ts',
       'src/utils/format.ts',
+      'src/vitest.setup.ts',
       'playwright.config.ts',
       'src/tests/e2e.spec.ts'
     ];

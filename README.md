@@ -72,8 +72,11 @@
 - Electronのメインプロセス・プリロードスクリプトは `electron/` 配下に配置します（`electron/main/main.ts`, `electron/preload/preload.ts`）。
 - TypeScript (ESM, `type: module`) として実行します。新規ファイルでは `import` / `export` を使用してください。
 - `npm run build` でレンダラーのビルド (`vite build`) およびメインプロセス等のコンパイル (`tsc -p tsconfig.main.json`) を行い、`npm run test:e2e` でビルド後にPlaywrightを実行します。
-- Vitest の対象は `src/**/*.tests.*` に限定します。単体テストは `src/` 配下に `*.tests.*` 形式で置いてください。
-- `src/tests/` 配下は Playwright の E2E テスト用です（`playwright.config.ts` の `testDir`）。
+- **単体テスト ([Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/))**: 対象は `src/**/*.tests.*` に限定します。テスト対象ファイルと同じディレクトリ内の `__tests__/` ディレクトリに `<対象ファイル名>.tests.ts`（コンポーネントは `.tests.tsx`）として配置してください（例: `src/utils/format.ts` → `src/utils/__tests__/format.tests.ts`）。
+  - 実行環境はjsdom、セットアップファイルは `src/vitest.setup.ts`（`@testing-library/jest-dom/vitest` を読み込み）。
+  - `npm run test:unit` で実行します。
+  - 単体テスト作成・実行時に必ず守るルール・観点は [test_rules.md](file:///Users/fujiwalatex/LocalRepositories/github/transport_action_cam_data/test_rules.md) に記載しています（AAAパターン、分岐網羅、specs優先、疎結合、ファイル配置等）。
+- `src/tests/` 配下は Playwright の E2E テスト用です（`playwright.config.ts` の `testDir`）。E2Eテストにも `test_rules.md` のルールが適用されます。
 - **Lint / Format ([Biome](https://biomejs.dev/))**: `rules.md` のコーディング規約に基づき `biome.json` を設定しています。対象は `src/**`, `electron/**`, `style.css`。
   - `npm run lint` / `npm run lint:fix` で手動実行できます。
   - VSCodeでは `.vscode/settings.json` によりBiome拡張機能でのファイル保存時フォーマットが有効になります（要 `biomejs.biome` 拡張機能）。

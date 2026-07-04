@@ -14,6 +14,26 @@
 
 ## 変更履歴
 
+### [2026-07-04] 単体テストのルール策定とテスト環境のセットアップ
+* **修正の動機・概要**:
+  - 単体テストを整備するにあたり、[参考記事1](https://qiita.com/mokio/items/95e962c59a142978bcb2)・[参考記事2](https://zenn.dev/toms74209200/articles/first-step-unit-testing)およびユーザー独自の観点（疎結合、全分岐網羅、specs優先、AAAパターン、ファイル配置・命名規則、Testing Library利用）をもとに、`rules.md`とは別のテスト専用ルール文書`test_rules.md`を新設した。
+  - 参考記事の「UIへの過度なテスト投資は避ける」という指針とユーザーの「全コンポーネントを網羅する」という指示は方向性が異なっていたため、事前に確認し、後者を採用した（コンポーネントも含め全ユニットを対象とする）。
+  - テスト実行にはTesting Libraryとjsdom環境が必要だが未導入だったため、あわせてセットアップし、実際にunit/componentレベルのテストが動作することをサンプルテストで検証した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `test_rules.md`: 単体テスト・E2Eテストで遵守すべきルール（AAAパターン、全分岐網羅、specs優先、疎結合、ファイル配置・命名規則`__tests__/*.tests.{ts|tsx}`、1ユニット1ファイル、Testing Libraryでのレンダリング結果検証）と参考記事由来の観点（4種類の入出力、テストダブルの分類、DAMP優先、カバレッジ率の位置づけ）を新規作成。
+    - `package.json`: `@testing-library/react`, `jsdom` を devDependencies に追加。
+    - `vite.config.ts`: Vitestの`test.environment`を`jsdom`に設定し、`test.setupFiles`に`src/vitest.setup.ts`を追加。
+    - `src/vitest.setup.ts`: `@testing-library/jest-dom/vitest`を読み込むセットアップファイルを新規作成。
+    - `src/utils/__tests__/format.tests.ts`: `formatBytes`の分岐（`bytes===0`、`decimals<0`）を網羅するサンプルテストを新規作成（動作検証用）。
+    - `src/components/__tests__/DropZone.tests.tsx`: `DropZone`のクリック・ドラッグ&ドロップの全分岐（disabled有無、ファイル有無、pathプロパティ有無）を網羅するサンプルテストをTesting Libraryで新規作成（動作検証用）。
+    - `src/tests/module-format.spec.ts`: ESMチェック対象に`src/vitest.setup.ts`を追加。
+  - **AGENTS.md**: 「単体テスト・E2Eテストを作成または実行する場合はtest_rules.mdに従う」ルールを追加。
+  - **README.md**: 単体テストの配置規則・実行環境・test_rules.mdへの参照を追記。
+  - **commit_rules.md**: テストコマンドの説明にtest_rules.mdへの参照を追記。
+  - **仕様書**: 変更なし
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:unit`（新規13テスト成功）, `npm run test:e2e`（全6テスト成功）で動作確認済み。
+
 ### [2026-07-04] 追加のコード品質改善（OCP対応・共通化・JSX整理・マジックストリング定数化・状態の導出値化）
 * **修正の動機・概要**:
   - 前回のSOLIDリファクタリングで一旦YAGNIを理由に見送っていた`FileCard`のOCP違反、`formatBytes`の重複、JSX内の複数行ロジック、文字列のマジックナンバー、連動するuseStateについて、人間からの指摘を受けて対応した。あわせてrules.mdに未記載だった「JSX内のロジック制限」「文字列のマジックナンバー定数化」の2ルールを追記した。
