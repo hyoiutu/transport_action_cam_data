@@ -14,6 +14,23 @@
 
 ## 変更履歴
 
+### [2026-07-05] 残りのユニットへの単体テスト追加
+* **修正の動機・概要**:
+  - 前回セットアップした単体テスト環境を用いて、残りの対象（`useDirectoryScan`, `useCopyOperation`, `FileCard`, `GalleryGrid`, `PreviewModal`, `errorHandling`）にtest_rules.mdのルール（AAAパターン・全分岐網羅・疎結合）に沿ったテストを追加した。
+  - 実装の過程で、本プロジェクトが`test.globals: true`を使用していないためTesting Libraryの自動クリーンアップが効かず、複数テストのレンダリング結果がDOMに蓄積して`getByText`等が「複数要素が見つかる」エラーを起こす問題を発見し、`src/vitest.setup.ts`に明示的な`afterEach(cleanup)`を追加して解消した。
+* **各ファイルへの影響と変更内容**:
+  - **実装**:
+    - `src/test-utils/fixtures.ts`: テスト間で共有する`FileInfo`ダミーデータ生成関数`createFileInfo`を新規作成。
+    - `src/test-utils/mockElectronApi.ts`: `window.api`のスタブと`onCopyProgress`/`onCopyError`のコールバックを疑似発火させる`emitProgress`/`emitError`ヘルパーを新規作成。
+    - `src/utils/__tests__/errorHandling.tests.ts`: `getErrorMessage`（Errorインスタンス/非Errorインスタンス）と`showErrorToast`（console.error・alert呼び出し）のテストを新規作成。
+    - `src/hooks/__tests__/useDirectoryScan.tests.ts`: スキャン成功/失敗（コピー元・コピー先それぞれ）、スキャン中の案内メッセージ、`window.srcFiles`/`window.updateDirectory`のグローバル同期を検証するテストを新規作成。
+    - `src/hooks/__tests__/useCopyOperation.tests.ts`: `canStartCopy`の各分岐、コピー完了/キャンセル/エラー、進捗・エラーイベント購読を検証するテストを新規作成。
+    - `src/components/__tests__/FileCard.tests.tsx` / `GalleryGrid.tests.tsx` / `PreviewModal.tests.tsx`: Testing Libraryでレンダリング結果を検証するテストを新規作成（動画/画像分岐、空状態、クリックハンドラ、dateSourceの表示分岐等）。
+    - `src/vitest.setup.ts`: `@testing-library/react`の`cleanup`を`afterEach`で明示的に実行するよう修正。
+  - **test_rules.md**: 「開発プロジェクト固有の設定」に、自動クリーンアップが効かない理由と対応、および`src/test-utils/`の位置づけ（`*.tests.*`命名を使わない共有モック・フィクスチャの置き場）を追記。
+  - **README.md / 仕様書**: 変更なし
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:unit`（8ファイル・51テスト全て成功）, `npm run test:e2e`（全6テスト成功）で動作確認済み。
+
 ### [2026-07-04] 単体テストのルール策定とテスト環境のセットアップ
 * **修正の動機・概要**:
   - 単体テストを整備するにあたり、[参考記事1](https://qiita.com/mokio/items/95e962c59a142978bcb2)・[参考記事2](https://zenn.dev/toms74209200/articles/first-step-unit-testing)およびユーザー独自の観点（疎結合、全分岐網羅、specs優先、AAAパターン、ファイル配置・命名規則、Testing Library利用）をもとに、`rules.md`とは別のテスト専用ルール文書`test_rules.md`を新設した。

@@ -57,5 +57,8 @@
 
 - **テストフレームワーク**: Vitest + Testing Library（`@testing-library/react` / `@testing-library/dom` / `@testing-library/jest-dom`）
 - **実行環境**: jsdom（`vite.config.ts` の `test.environment`）
-- **セットアップファイル**: `src/vitest.setup.ts`（`@testing-library/jest-dom/vitest` を読み込み、`toBeInTheDocument` 等のマッチャーを有効化）
+- **セットアップファイル**: `src/vitest.setup.ts`
+  - `@testing-library/jest-dom/vitest` を読み込み、`toBeInTheDocument` 等のマッチャーを有効化する。
+  - 本プロジェクトは `test.globals: true` を使用していない（`describe` / `test` / `expect` 等を各ファイルで明示的にimportする）ため、Testing Libraryの自動クリーンアップ（`afterEach(cleanup)`の自動登録）が働かない。そのため `src/vitest.setup.ts` で `afterEach(() => cleanup())` を明示的に実行している。これを忘れるとレンダリング結果がテスト間で蓄積し、`getByText`等で「複数要素が見つかる」エラーが発生する。
+- **共有モック・フィクスチャ**: 複数のテストファイルで共有するモック（例: `window.api` のスタブ）やフィクスチャ生成関数（例: `FileInfo` のダミーデータ）は `src/test-utils/` に配置する。このディレクトリのファイルはテスト対象そのものではないため `*.tests.*` という命名は使わない（Vitestの実行対象に含めないため）。
 - **実行コマンド**: `npm run test:unit`（対象は `src/**/*.tests.*`）
