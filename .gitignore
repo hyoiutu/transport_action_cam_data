@@ -1,4 +1,45 @@
+# Test Directories
 test_destination/
 sony_test_source/
 dji_test_source/
+test-results/
+playwright-report/
+
+# 動画・画像ファイル（アプリの対応フォーマットと一致）
+# テスト実行時の成果物が意図せず別の場所に生成されコミットされる事故を防ぐため、
+# 既知のテスト用ディレクトリ以外に配置された場合でも拡張子単位で除外する
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.jpg
+*.jpeg
+*.png
+
+# OS metadata
 .DS_Store
+Thumbs.db
+Desktop.ini
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# Environment variables
+.env
+.env.local
+
+# Electron build outputs (electron-builder / electron-packager)
+dist/
+out/
+build/
+release/
+*.dmg
+*.exe
+*.zip
+
+# Other
+SDD-training
