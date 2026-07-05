@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getErrorMessage, showErrorToast } from '../utils/errorHandling';
 
-type ProgressState = {
+export type ProgressState = {
   status: string;
   percent: number;
   file: string;

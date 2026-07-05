@@ -21,16 +21,19 @@ test.describe('React integration', () => {
   });
 
   test('places shared React components under src/components', () => {
-    const appSource = fs.readFileSync(path.join(rootDir, 'src', 'App.tsx'), 'utf8');
+    const directorySelectorSource = fs.readFileSync(
+      path.join(rootDir, 'src', 'components', 'DirectorySelector.tsx'),
+      'utf8'
+    );
     const galleryGridSource = fs.readFileSync(path.join(rootDir, 'src', 'components', 'GalleryGrid.tsx'), 'utf8');
 
     expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'DropZone.tsx'))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'FileCard.tsx'))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'GalleryGrid.tsx'))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, 'src', 'components', 'PreviewModal.tsx'))).toBe(true);
-    expect(appSource).toContain("import { DropZone } from './components/DropZone';");
+    expect(directorySelectorSource).toContain("import { DropZone } from './DropZone';");
     expect(galleryGridSource).toContain("import { FileCard } from './FileCard';");
-    expect(appSource).not.toMatch(/function DropZone/);
+    expect(directorySelectorSource).not.toMatch(/function DropZone/);
     expect(galleryGridSource).not.toMatch(/function FileCard/);
   });
 });

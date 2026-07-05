@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
+import { renderWithChakra } from '../../test-utils/renderWithChakra';
 import { DropZone } from '../DropZone';
 
 const MockIcon = ({ className }: { className?: string }) => <svg data-testid="mock-icon" className={className} />;
@@ -20,7 +21,7 @@ type DropZoneOverrides = Partial<{
 const renderDropZone = (overrides: DropZoneOverrides = {}) => {
   const onClick = vi.fn();
   const onDrop = vi.fn();
-  const utils = render(
+  const utils = renderWithChakra(
     <DropZone id="test-drop-zone" icon={MockIcon} onClick={onClick} onDrop={onDrop} disabled={false} {...overrides} />
   );
   const rootElement = utils.container.firstChild as HTMLElement;
@@ -48,7 +49,7 @@ describe('DropZoneに関するテスト', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  test('disabled=falseのときdragoverでdragoverクラスが付与される', () => {
+  test('disabled=falseのときdragoverでdata-dragoverがtrueになる', () => {
     // Arrange
     const { rootElement } = renderDropZone({ disabled: false });
 
@@ -56,10 +57,10 @@ describe('DropZoneに関するテスト', () => {
     fireEvent.dragOver(rootElement);
 
     // Assert
-    expect(rootElement.className).toContain('dragover');
+    expect(rootElement).toHaveAttribute('data-dragover', 'true');
   });
 
-  test('disabled=trueのときdragoverが発生してもdragoverクラスは付与されない', () => {
+  test('disabled=trueのときdragoverが発生してもdata-dragoverはfalseのまま', () => {
     // Arrange
     const { rootElement } = renderDropZone({ disabled: true });
 
@@ -67,10 +68,10 @@ describe('DropZoneに関するテスト', () => {
     fireEvent.dragOver(rootElement);
 
     // Assert
-    expect(rootElement.className).not.toContain('dragover');
+    expect(rootElement).toHaveAttribute('data-dragover', 'false');
   });
 
-  test('dragleaveでdragoverクラスが解除される', () => {
+  test('dragleaveでdata-dragoverがfalseに戻る', () => {
     // Arrange
     const { rootElement } = renderDropZone({ disabled: false });
     fireEvent.dragOver(rootElement);
@@ -79,7 +80,7 @@ describe('DropZoneに関するテスト', () => {
     fireEvent.dragLeave(rootElement);
 
     // Assert
-    expect(rootElement.className).not.toContain('dragover');
+    expect(rootElement).toHaveAttribute('data-dragover', 'false');
   });
 
   test('disabled=trueのときdropしてもonDropは呼ばれない', () => {

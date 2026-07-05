@@ -20,6 +20,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@chakra-ui/react": "^3.36.0",
+    "@emotion/react": "^11.14.0",
     "exif-parser": "^0.1.12",
     "lucide-react": "^1.21.0",
     "music-metadata": "^7.14.0",
@@ -46,7 +48,6 @@
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": "biome lint",
-    "electron/**/*.ts": "biome lint",
-    "style.css": "biome lint"
+    "electron/**/*.ts": "biome lint"
   }
 }

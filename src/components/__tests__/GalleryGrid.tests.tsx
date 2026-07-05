@@ -1,12 +1,13 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 import { createFileInfo } from '../../test-utils/fixtures';
+import { renderWithChakra } from '../../test-utils/renderWithChakra';
 import { GalleryGrid } from '../GalleryGrid';
 
 describe('GalleryGridに関するテスト', () => {
   test('filesが空でcurrentTabがsrcのとき、コピー元向けの空状態メッセージが表示される', () => {
     // Arrange & Act
-    render(<GalleryGrid files={[]} currentTab="src" onFileClick={vi.fn()} />);
+    renderWithChakra(<GalleryGrid files={[]} currentTab="src" onFileClick={vi.fn()} />);
 
     // Assert
     expect(screen.getByText(/コピー元フォルダを選択してスキャンしてください/)).toBeInTheDocument();
@@ -14,7 +15,7 @@ describe('GalleryGridに関するテスト', () => {
 
   test('filesが空でcurrentTabがdestのとき、コピー先向けの空状態メッセージが表示される', () => {
     // Arrange & Act
-    render(<GalleryGrid files={[]} currentTab="dest" onFileClick={vi.fn()} />);
+    renderWithChakra(<GalleryGrid files={[]} currentTab="dest" onFileClick={vi.fn()} />);
 
     // Assert
     expect(screen.getByText(/コピー先フォルダに動画や画像がありません/)).toBeInTheDocument();
@@ -25,7 +26,7 @@ describe('GalleryGridに関するテスト', () => {
     const file = createFileInfo({ name: 'clip.mp4' });
 
     // Act
-    render(<GalleryGrid files={[file]} currentTab="src" onFileClick={vi.fn()} />);
+    renderWithChakra(<GalleryGrid files={[file]} currentTab="src" onFileClick={vi.fn()} />);
 
     // Assert
     expect(screen.getByText('clip.mp4')).toBeInTheDocument();
@@ -35,7 +36,7 @@ describe('GalleryGridに関するテスト', () => {
     // Arrange
     const file = createFileInfo({ name: 'clip.mp4' });
     const onFileClick = vi.fn();
-    render(<GalleryGrid files={[file]} currentTab="src" onFileClick={onFileClick} />);
+    renderWithChakra(<GalleryGrid files={[file]} currentTab="src" onFileClick={onFileClick} />);
 
     // Act
     fireEvent.click(screen.getByText('clip.mp4'));

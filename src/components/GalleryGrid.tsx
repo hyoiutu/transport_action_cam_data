@@ -1,3 +1,4 @@
+import { Box, SimpleGrid, VStack } from '@chakra-ui/react';
 import { ImageOff } from 'lucide-react';
 import { FileCard } from './FileCard';
 
@@ -16,18 +17,20 @@ export const GalleryGrid = ({ files, currentTab, onFileClick }: GalleryGridProps
   if (files.length === 0) {
     const emptyMessage = currentTab === 'src' ? EMPTY_MESSAGE_SRC : EMPTY_MESSAGE_DEST;
     return (
-      <div className="empty-state">
-        <ImageOff />
-        <p>{emptyMessage}</p>
-      </div>
+      <VStack gap="16px" padding="80px 20px" color="textMuted" textAlign="center">
+        <ImageOff size={48} strokeWidth={1.5} color="rgba(255, 255, 255, 0.1)" />
+        <Box as="p" fontSize="14px" maxWidth="320px" lineHeight="1.6">
+          {emptyMessage}
+        </Box>
+      </VStack>
     );
   }
 
   return (
-    <>
+    <SimpleGrid id="gallery-grid" minChildWidth="180px" gap="20px" alignContent="start">
       {files.map((file) => (
         <FileCard key={buildFileKey(file)} file={file} onClick={() => onFileClick(file)} />
       ))}
-    </>
+    </SimpleGrid>
   );
 };

@@ -14,6 +14,27 @@
 
 ## 変更履歴
 
+### [2026-07-05] UIをChakra UIベースへ移行し、style.cssとApp.tsxの責務を整理した
+* **修正の動機・概要**:
+  - 従来のUIは`style.css`（684行）に全スタイルが素のCSSクラスとして集約されており保守性・可読性が低く、`App.tsx`もタイトルバー・サイドバー・タブ・ギャラリーの配線を1ファイルで担い責務が多い状態だった。外部UIコンポーネント（Chakra UI）を導入して独自CSSの分量を減らし、スタイルのスコープをコンポーネント単位（style props）に狭め、かつApp.tsxから画面の各セクションをコンポーネントとして切り出すことで責務を分割した。
+* **各ファイルへの影響と変更内容**:
+  - **依存関係**: `@chakra-ui/react`（v3系）と、そのpeerDependencyである`@emotion/react`を追加。
+  - **テーマ**: `src/theme.ts`を新設。`createSystem(defaultConfig, defineConfig({...}))`で、旧`style.css`の`:root`にあったカラートークン・フォントをChakraのtokensに移植し、box-sizing/スクロールバー等のグローバルな指定は`globalCss`にまとめた。
+  - **Provider設定**: `src/main.tsx`で`ChakraProvider`により`App`をラップし、`style.css`のimportを削除。
+  - **既存コンポーネントのChakra化**: `DropZone.tsx`・`FileCard.tsx`・`GalleryGrid.tsx`をChakraの`Box`/`Flex`/`SimpleGrid`等+style propsに置き換え。`PreviewModal.tsx`はChakraの`Dialog`（Ark UI）に置き換え、フォーカストラップやEscapeキー対応を自前実装から解放した（車輪の再発明防止）。既存のDOM `id`（`#btn-start-copy`等）とE2Eテストが依存する`.file-card`クラスは維持し、E2Eへの影響を最小化した。
+  - **App.tsxの責務分割**: `TitleBar.tsx` / `DirectorySelector.tsx`（src・dest共通化によりDRY化も兼ねる） / `ProgressPanel.tsx` / `CopyActions.tsx` / `ContentTabs.tsx`を新設し、`App.tsx`はこれらを組み合わせる薄い配線層に整理した。
+  - **style.cssの削除**: 全スタイルの移行が完了したため`style.css`を削除。`biome.json`・`package.json`のlint対象・lint-staged設定からも除去。
+  - **既知の副作用**: コピー処理中のキャンセル判定を担う`fileCopier.ts`はこの回の対象外（前回のコミットで修正済み）。
+  - **テスト**:
+    - `src/test-utils/renderWithChakra.tsx`を新設し、`ChakraProvider`でラップした`render`を提供。既存コンポーネントテストをこれに置き換えた。
+    - Chakra移行に伴いクラス名依存のアサーション（`.dragover`、`.media-badge.video`等）が使えなくなったため、`data-dragover` / `data-media-type`等の明示的なdata属性に置き換えた。
+    - Chakraの`Dialog`（Ark UI）はクローズ処理や外側クリック検知を内部で非同期に処理するため、一部のテストで`waitFor`が必要になった。backdropクリックについては、Ark UIの外側クリック検知がテスト環境（jsdom）と噛み合わなかったため、`Dialog.Backdrop`に明示的な`onClick`ハンドラを追加して対応した。
+    - 新設した5コンポーネント（TitleBar等）にそれぞれテストファイルを追加。
+    - `src/tests/module-format.spec.ts`・`react-integration.spec.ts`・`e2e.spec.ts`を新しい構成・DOM仕様（`data-state`属性等）に合わせて更新。
+  - **rules.md**: 「UIはChakra UIコンポーネントを優先し、独自CSSクラスを新規作成しない」「style propsが多くなりすぎる場合は専用コンポーネントかtheme recipeに切り出す」の2ルールを追加。
+  - **test_rules.md**: Chakra UIコンポーネントのテストは`renderWithChakra`を使うこと、Ark UIの非同期処理に関する注記を追加。
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:unit`（22ファイル・120テスト成功）, `npm run test:e2e`（全6テスト成功）で動作確認済み。実アプリのスクリーンショットで、ダーク・紫グラデーション基調の既存デザインが維持されていることも目視確認した。
+
 ### [2026-07-05] specs/system_specification.mdとの乖離解消・コピーキャンセル機能の実装修正
 * **修正の動機・概要**:
   - AGENTS.mdの「実装, README.md, specs/以下の仕様書の乖離確認」ルールを、TypeScript移行以降のコミットで実質的に守れていなかった。原因は、`specs/`に`auto_commit_skill_specification.md`だけでなく実際のアプリ仕様書`system_specification.md`（TypeScript移行以前から存在）が既にあったにもかかわらず、以降の作業で`ls specs/`等による再確認を行わず「specs/にはauto-commitスキルの仕様書しかない」という古い認識のまま作業を続けてしまったこと。ユーザーからの指摘で発覚した。

@@ -72,9 +72,9 @@ test.describe('Action Cam Data Transporter E2Eテスト', () => {
     // プレビュー機能の検証: 最初のファイル（画像または動画）をクリックしてモーダルを開く
     await firstCard.click();
 
-    // モーダルが表示されていることを確認
+    // モーダルが表示されていることを確認（Chakra UIのDialogはdata-state属性で開閉状態を表す）
     const modal = page.locator('#preview-modal');
-    await expect(modal).toHaveClass(/show/);
+    await expect(modal).toHaveAttribute('data-state', 'open');
 
     // モーダル内の画像・動画要素が表示されていること
     const modalMedia = page.locator('#modal-body img, #modal-body video');
@@ -82,7 +82,7 @@ test.describe('Action Cam Data Transporter E2Eテスト', () => {
 
     // モーダルを閉じる
     await page.locator('#modal-close').click();
-    await expect(modal).not.toHaveClass(/show/);
+    await expect(modal).not.toBeVisible();
   });
 
   test('3. 自動分類コピーと重複回避の検証', async () => {
