@@ -36,6 +36,18 @@ describe('PreviewModalに関するテスト', () => {
     expect(document.querySelector('video')).not.toBeNull();
   });
 
+  test('動画ファイルの場合、autoPlayは付与されない（重い動画再生によるカクつきを避けるためユーザー操作で再生開始する）', () => {
+    // Arrange
+    const file = createFileInfo({ type: 'video' });
+
+    // Act
+    renderWithChakra(<PreviewModal file={file} onClose={vi.fn()} />);
+
+    // Assert
+    const video = document.querySelector('video') as HTMLVideoElement;
+    expect(video.autoplay).toBe(false);
+  });
+
   test('画像ファイルの場合、img要素が表示される', () => {
     // Arrange
     const file = createFileInfo({ type: 'image', name: 'photo.jpg' });

@@ -15,7 +15,8 @@ const DATE_SOURCE_LABEL_METADATA = 'メタデータ';
 const DATE_SOURCE_LABEL_FILE_SYSTEM = 'ファイルシステム';
 
 const PREVIEW_RENDERERS: Record<FileInfo['type'], (fileUrl: string, file: FileInfo) => ReactNode> = {
-  video: (fileUrl) => <ChakraVideo src={fileUrl} controls autoPlay width="100%" height="100%" objectFit="contain" />,
+  // autoPlayは付与しない: 高解像度・高ビットレートの動画をモーダル表示と同時にフルデコードするとカクつきの原因になるため、再生開始はユーザー操作に委ねる
+  video: (fileUrl) => <ChakraVideo src={fileUrl} controls width="100%" height="100%" objectFit="contain" />,
   image: (fileUrl, file) => (
     <ChakraImg src={fileUrl} alt={file.name} maxWidth="100%" maxHeight="100%" objectFit="contain" />
   )
