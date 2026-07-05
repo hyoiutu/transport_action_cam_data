@@ -1,5 +1,6 @@
 import { Box, SimpleGrid, VStack } from '@chakra-ui/react';
 import { ImageOff } from 'lucide-react';
+import { iconSizes } from '../theme';
 import { FileCard } from './FileCard';
 
 const EMPTY_MESSAGE_SRC = '表示するファイルがありません。コピー元フォルダを選択してスキャンしてください。';
@@ -17,9 +18,9 @@ export const GalleryGrid = ({ files, currentTab, onFileClick }: GalleryGridProps
   if (files.length === 0) {
     const emptyMessage = currentTab === 'src' ? EMPTY_MESSAGE_SRC : EMPTY_MESSAGE_DEST;
     return (
-      <VStack gap="16px" padding="80px 20px" color="textMuted" textAlign="center">
-        <ImageOff size={48} strokeWidth={1.5} color="rgba(255, 255, 255, 0.1)" />
-        <Box as="p" fontSize="14px" maxWidth="320px" lineHeight="1.6">
+      <VStack gap="4" paddingY="20" paddingX="5" color="textMuted" textAlign="center">
+        <ImageOff size={iconSizes.xl} strokeWidth={1.5} color="overlayWeak" />
+        <Box as="p" fontSize="sm" maxWidth="80" lineHeight="1.6">
           {emptyMessage}
         </Box>
       </VStack>
@@ -27,7 +28,7 @@ export const GalleryGrid = ({ files, currentTab, onFileClick }: GalleryGridProps
   }
 
   return (
-    <SimpleGrid id="gallery-grid" minChildWidth="180px" gap="20px" alignContent="start">
+    <SimpleGrid id="gallery-grid" minChildWidth="180px" gap="5" alignContent="start">
       {files.map((file) => (
         <FileCard key={buildFileKey(file)} file={file} onClick={() => onFileClick(file)} />
       ))}

@@ -1,6 +1,7 @@
 import { Box, Flex } from '@chakra-ui/react';
 import type { LucideProps } from 'lucide-react';
 import type { ComponentType } from 'react';
+import { iconSizes } from '../theme';
 import { DropZone } from './DropZone';
 
 const NOT_SELECTED_LABEL = '選択されていません';
@@ -26,29 +27,30 @@ export const DirectorySelector = ({
   onSelect,
   onDrop
 }: DirectorySelectorProps) => (
-  <Flex direction="column" gap="10px">
+  <Flex direction="column" gap="2.5">
     <Flex
       as="label"
       alignItems="center"
-      gap="6px"
-      fontSize="12px"
-      fontWeight={600}
+      gap="1.5"
+      fontSize="xs"
+      fontWeight="semibold"
       color="textMuted"
       textTransform="uppercase"
-      letterSpacing="0.5px"
+      letterSpacing="wide"
     >
-      <LabelIcon size={14} /> {labelText}
+      <LabelIcon size={iconSizes.md} /> {labelText}
     </Flex>
     <DropZone id={`${type}-drop-zone`} icon={dropZoneIcon} disabled={disabled} onClick={onSelect} onDrop={onDrop} />
     <Box
       id={`${type}-path-display`}
       title={path}
-      bg="rgba(0, 0, 0, 0.2)"
-      border="1px solid"
+      bg="scrimMedium"
+      border="sm"
       borderColor="borderDefault"
-      borderRadius="8px"
-      padding="8px 12px"
-      fontSize="11px"
+      borderRadius="lg"
+      paddingY="2"
+      paddingX="3"
+      fontSize="2xs"
       color="textMain"
       wordBreak="break-all"
       fontFamily="monospace"

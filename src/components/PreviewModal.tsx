@@ -1,6 +1,7 @@
 import { Box, chakra, Dialog, Flex, Portal } from '@chakra-ui/react';
 import { Calendar, Database, X } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { iconSizes, layout, zIndices } from '../theme';
 import { formatBytes } from '../utils/format';
 
 const ChakraVideo = chakra('video');
@@ -37,40 +38,40 @@ export const PreviewModal = ({ file, onClose }: PreviewModalProps) => {
   return (
     <Dialog.Root open={file !== null} onOpenChange={(details) => !details.open && onClose()}>
       <Portal>
-        <Dialog.Backdrop id="modal-backdrop" onClick={onClose} bg="rgba(5, 5, 8, 0.85)" backdropFilter="blur(20px)" />
+        <Dialog.Backdrop id="modal-backdrop" onClick={onClose} bg="scrimHeavy" backdropFilter="blur(20px)" />
         <Dialog.Positioner>
           <Dialog.Content
             id="preview-modal"
-            bg="#12121a"
-            border="1px solid"
+            bg="bgSurfaceSolid"
+            border="sm"
             borderColor="borderDefault"
-            borderRadius="20px"
+            borderRadius="3xl"
             width="90%"
-            maxWidth="800px"
+            maxWidth={layout.modalMaxWidth}
             maxHeight="80vh"
             overflow="hidden"
             display="flex"
             flexDirection="column"
-            boxShadow="0 24px 60px rgba(0, 0, 0, 0.8)"
+            boxShadow="modal"
             position="relative"
           >
             <Dialog.CloseTrigger
               id="modal-close"
               position="absolute"
-              top="16px"
-              right="16px"
-              bg="rgba(255, 255, 255, 0.05)"
+              top="4"
+              right="4"
+              bg="overlayWeak"
               borderRadius="50%"
-              width="36px"
-              height="36px"
+              width="9"
+              height="9"
               display="flex"
               alignItems="center"
               justifyContent="center"
-              color="#fff"
-              zIndex={20}
-              _hover={{ bg: 'rgba(255, 255, 255, 0.15)', transform: 'scale(1.05)' }}
+              color="textInverse"
+              zIndex={zIndices.closeButton}
+              _hover={{ bg: 'overlayMedium', transform: 'scale(1.05)' }}
             >
-              <X size={18} />
+              <X size={iconSizes.lg} />
             </Dialog.CloseTrigger>
             <Box
               id="modal-body"
@@ -78,30 +79,30 @@ export const PreviewModal = ({ file, onClose }: PreviewModalProps) => {
               display="flex"
               alignItems="center"
               justifyContent="center"
-              bg="#000"
+              bg="bgMedia"
               aspectRatio={PREVIEW_ASPECT_RATIO}
               overflow="hidden"
             >
               {file && PREVIEW_RENDERERS[file.type](fileUrl, file)}
             </Box>
             <Box
-              padding="20px"
-              bg="rgba(255, 255, 255, 0.02)"
-              borderTop="1px solid"
+              padding="5"
+              bg="overlaySubtle"
+              borderTop="sm"
               borderColor="borderDefault"
               display="flex"
               flexDirection="column"
-              gap="8px"
+              gap="2"
             >
-              <Box id="modal-meta-title" fontSize="15px" fontWeight={600}>
+              <Box id="modal-meta-title" fontSize="md" fontWeight="semibold">
                 {file?.name ?? 'File Name'}
               </Box>
-              <Flex gap="16px" fontSize="12px" color="textMuted">
-                <Flex id="modal-meta-date" alignItems="center" gap="4px">
-                  <Calendar size={14} /> {file ? buildDateLabel(file) : 'Date'}
+              <Flex gap="4" fontSize="xs" color="textMuted">
+                <Flex id="modal-meta-date" alignItems="center" gap="1">
+                  <Calendar size={iconSizes.md} /> {file ? buildDateLabel(file) : 'Date'}
                 </Flex>
-                <Flex id="modal-meta-size" alignItems="center" gap="4px">
-                  <Database size={14} /> {file ? `サイズ: ${formatBytes(file.size)}` : 'Size'}
+                <Flex id="modal-meta-size" alignItems="center" gap="1">
+                  <Database size={iconSizes.md} /> {file ? `サイズ: ${formatBytes(file.size)}` : 'Size'}
                 </Flex>
               </Flex>
             </Box>

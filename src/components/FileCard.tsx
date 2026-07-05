@@ -2,6 +2,7 @@ import { Box, chakra, Flex } from '@chakra-ui/react';
 import type { LucideProps } from 'lucide-react';
 import { Image, Video } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
+import { iconSizes } from '../theme';
 import { formatBytes } from '../utils/format';
 
 const ChakraVideo = chakra('video');
@@ -45,12 +46,12 @@ const renderImageThumbnail = (fileUrl: string, file: FileInfo): ReactNode => (
 const MEDIA_TYPE_CONFIG: Record<FileInfo['type'], MediaTypeConfig> = {
   video: {
     icon: Video,
-    badgeColor: 'accent',
+    badgeColor: 'mediaVideoAccent',
     renderThumbnail: renderVideoThumbnail
   },
   image: {
     icon: Image,
-    badgeColor: 'accentBlue',
+    badgeColor: 'mediaImageAccent',
     renderThumbnail: renderImageThumbnail
   }
 };
@@ -70,10 +71,10 @@ export const FileCard = ({ file, onClick }: FileCardProps) => {
       className="file-card"
       role="group"
       onClick={onClick}
-      bg="bgCard"
-      border="1px solid"
+      bg="bgSurface"
+      border="sm"
       borderColor="borderDefault"
-      borderRadius="12px"
+      borderRadius="xl"
       overflow="hidden"
       transition="all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
       display="flex"
@@ -81,15 +82,15 @@ export const FileCard = ({ file, onClick }: FileCardProps) => {
       cursor="pointer"
       _hover={{
         transform: 'translateY(-4px)',
-        bg: 'bgCardHover',
-        borderColor: 'rgba(138, 43, 226, 0.25)',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)'
+        bg: 'bgSurfaceHover',
+        borderColor: 'borderActive',
+        boxShadow: 'cardHover'
       }}
     >
       <Box
         position="relative"
         aspectRatio={THUMBNAIL_ASPECT_RATIO}
-        bg="#000"
+        bg="bgMedia"
         display="flex"
         alignItems="center"
         justifyContent="center"
@@ -99,23 +100,23 @@ export const FileCard = ({ file, onClick }: FileCardProps) => {
         <Flex
           data-media-type={file.type}
           position="absolute"
-          top="8px"
-          right="8px"
-          bg="rgba(0, 0, 0, 0.6)"
-          padding="4px"
-          borderRadius="6px"
+          top="2"
+          right="2"
+          bg="scrimStrong"
+          padding="1"
+          borderRadius="md"
           color={badgeColor}
           alignItems="center"
           justifyContent="center"
           backdropFilter="blur(4px)"
         >
-          <Icon size={12} />
+          <Icon size={iconSizes.sm} />
         </Flex>
       </Box>
-      <Box padding="12px" display="flex" flexDirection="column" gap="6px">
+      <Box padding="3" display="flex" flexDirection="column" gap="1.5">
         <Box
-          fontSize="12px"
-          fontWeight={600}
+          fontSize="xs"
+          fontWeight="semibold"
           overflow="hidden"
           textOverflow="ellipsis"
           whiteSpace="nowrap"
@@ -123,8 +124,8 @@ export const FileCard = ({ file, onClick }: FileCardProps) => {
         >
           {file.name}
         </Box>
-        <Flex justifyContent="space-between" alignItems="center" fontSize="10px" color="textMuted">
-          <Box as="span" bg="rgba(255, 255, 255, 0.05)" padding="2px 6px" borderRadius="4px" fontFamily="monospace">
+        <Flex justifyContent="space-between" alignItems="center" fontSize="2xs" color="textMuted">
+          <Box as="span" bg="overlayWeak" paddingY="0.5" paddingX="1.5" borderRadius="sm" fontFamily="monospace">
             {file.creationDate}
           </Box>
           <Box as="span">{formatBytes(file.size)}</Box>

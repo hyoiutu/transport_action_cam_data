@@ -840,6 +840,93 @@ const PrimaryActionButton = (props: ButtonProps) => (
 
 ---
 
+# 色は生のカラーコードではなく意味を持たせた名前のトークンとして管理する
+
+NG
+```tsx
+<Box bg="rgba(30, 30, 45, 0.6)" color="#f0f0f5">
+  ...
+</Box>
+```
+
+OK
+```tsx
+// src/theme.ts側でトークンとして定義する
+colors: {
+  bgSurface: { value: 'rgba(30, 30, 45, 0.6)' },
+  textMain: { value: '#f0f0f5' }
+}
+
+// コンポーネント側はトークン名を参照する
+<Box bg="bgSurface" color="textMain">
+  ...
+</Box>
+```
+
+生のカラーコード（`#8a2be2`や`rgba(...)`）をコンポーネントに直接書くと、同じ色のつもりで微妙に異なる値が紛れ込んだり、色を変更する際に修正漏れが起きる。`src/theme.ts`の`colors`トークンとして一元管理し、コンポーネントからは必ずトークン名で参照する。
+
+**新しい色を安易に増やさない**: 色を追加する前に、既存のトークンで役割を表現できないか必ず検討する。目安として以下のように「役割」ごとに色を用意し、同じ役割の色が複数の微妙に異なる値に分裂しないようにする。
+- メイン（ブランド・アクション）: `brandPrimary` / `brandPrimaryHover` / `brandPrimaryMuted`
+- サブ（メディア種別等の補助的な強調）: `mediaVideoAccent` / `mediaImageAccent`
+- エラー・キャンセル: `danger`
+- テキスト: `textMain` / `textMuted` / `textInverse`
+- 背景・ボーダー・オーバーレイ: `bg*` / `border*` / `overlay*` / `scrim*`（いずれも「弱・中・強」等の少数の段階に収める）
+
+---
+
+# 余白・サイズはChakraのデザイントークンを最優先し、無い場合は4pxルールで定数化する
+
+NG
+```tsx
+<Box padding="17px" gap="10px" borderRadius="14px">
+  ...
+</Box>
+```
+
+OK
+```tsx
+// 1. 最優先: Chakraが提供する標準スケール（4の倍数を基本としたspacing/sizes/radii等のトークン）をそのまま使う
+<Box padding="4" gap="2.5" borderRadius="xl">
+  ...
+</Box>
+
+// 2. Chakraの標準スケールに一致する値が無い場合は、4pxの倍数に丸めた上でsrc/theme.tsに定数化する
+// src/theme.ts
+export const layout = {
+  sidebarWidth: '340px' // 4pxの倍数。Chakraのsizesトークンには一致する値が無いため定数化する
+};
+```
+
+余白・サイズにその場限りの数値（マジックナンバー）を使うと、値の一貫性が失われ「なぜその数値なのか」が分からなくなる。**最優先でChakraが提供するデザイントークン**（`padding="4"`のような数値スケール、`fontSize="sm"`、`borderRadius="xl"`等）を使うこと。Chakraのトークンに一致する値が存在しない場合に限り、4pxの倍数に丸めた値を`src/theme.ts`に定数化して使う。既存デザインの寸法（例: 38px）が4の倍数でない場合、4の倍数に丸めることによる見た目の変化は許容する（`specs/system_specification.md`のUI/UXコンセプトから逸脱しない範囲であればよい）。
+
+---
+
+# 複数コンポーネントで使う色・余白・サイズのパターンはグローバルなファイルにまとめる
+
+NG
+```tsx
+// FileCard.tsxとProgressPanel.tsxのそれぞれで同じ色を別々に書く
+// FileCard.tsx
+<Box bg="rgba(0, 0, 0, 0.2)">...</Box>
+// ProgressPanel.tsx
+<Box bg="rgba(0, 0, 0, 0.2)">...</Box>
+```
+
+OK
+```tsx
+// src/theme.ts: 一箇所にまとめて定義する
+colors: {
+  scrimMedium: { value: 'rgba(0, 0, 0, 0.2)' }
+}
+
+// 各コンポーネントはトークン名で参照するだけにする
+<Box bg="scrimMedium">...</Box>
+```
+
+色・フォントサイズ・余白サイズ等が複数のコンポーネントで共通して使われるようになってきたら、コンポーネントごとに同じ値を書き写すのではなく、`src/theme.ts`（Chakraのtheme tokens、または`gradients`/`shadows`/`layout`等のプレーンな定数export）に一元化し、各コンポーネントはそこから参照する。
+
+---
+
 # コミットメッセージにはプレフィックスを付与する
 
 NG

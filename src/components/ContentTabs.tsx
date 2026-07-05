@@ -2,6 +2,7 @@ import { Box, Button, Flex } from '@chakra-ui/react';
 import type { LucideProps } from 'lucide-react';
 import { Archive, Files } from 'lucide-react';
 import type { ComponentType } from 'react';
+import { iconSizes } from '../theme';
 
 type TabButtonProps = {
   id: string;
@@ -18,15 +19,15 @@ const TabButton = ({ id, isActive, icon: Icon, label, count, countId, onClick }:
   <Button
     id={id}
     variant="ghost"
-    fontSize="13px"
-    fontWeight={600}
-    color={isActive ? '#fff' : 'textMuted'}
-    bg={isActive ? 'rgba(138, 43, 226, 0.15)' : 'transparent'}
-    border={isActive ? '1px solid' : 'none'}
+    fontSize="xs"
+    fontWeight="semibold"
+    color={isActive ? 'textInverse' : 'textMuted'}
+    bg={isActive ? 'brandPrimaryMuted' : 'transparent'}
+    border={isActive ? 'sm' : 'none'}
     borderColor={isActive ? 'borderActive' : undefined}
     onClick={onClick}
   >
-    <Icon size={14} /> {label} (
+    <Icon size={iconSizes.md} /> {label} (
     <Box as="span" id={countId}>
       {count}
     </Box>
@@ -44,16 +45,16 @@ type ContentTabsProps = {
 
 export const ContentTabs = ({ currentTab, srcCount, destCount, scanInfo, onTabChange }: ContentTabsProps) => (
   <Flex
-    height="64px"
-    borderBottom="1px solid"
+    height="16"
+    borderBottom="sm"
     borderColor="borderDefault"
-    padding="0 24px"
+    paddingX="6"
     alignItems="center"
     justifyContent="space-between"
-    bg="rgba(15, 15, 21, 0.8)"
+    bg="bgChrome"
     backdropFilter="blur(10px)"
   >
-    <Flex gap="8px">
+    <Flex gap="2">
       <TabButton
         id="tab-src"
         isActive={currentTab === 'src'}
@@ -73,7 +74,7 @@ export const ContentTabs = ({ currentTab, srcCount, destCount, scanInfo, onTabCh
         onClick={() => onTabChange('dest')}
       />
     </Flex>
-    <Box fontSize="12px" color="textMuted">
+    <Box fontSize="xs" color="textMuted">
       <Box as="span" id="scan-info">
         {scanInfo}
       </Box>

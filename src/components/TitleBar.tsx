@@ -1,5 +1,6 @@
 import { Box } from '@chakra-ui/react';
 import type { CSSProperties } from 'react';
+import { layout, zIndices } from '../theme';
 
 // Electronのフレームレスウィンドウをドラッグ移動可能にするための非標準プロパティ（csstypeの型定義に含まれないため拡張する）
 // biome-ignore lint/style/useNamingConvention: ブラウザのベンダープレフィックス付きCSSプロパティ名に合わせる必要がある
@@ -9,18 +10,18 @@ const dragRegionStyle: DragRegionStyle = { WebkitAppRegion: 'drag' };
 
 export const TitleBar = () => (
   <Box
-    height="38px"
-    bg="rgba(11, 11, 15, 0.95)"
+    height={layout.titleBarHeight}
+    bg="bgChrome"
     display="flex"
     alignItems="center"
     justifyContent="center"
-    borderBottom="1px solid"
+    borderBottom="sm"
     borderColor="borderDefault"
     position="relative"
-    zIndex={1000}
+    zIndex={zIndices.titleBar}
   >
     <Box position="absolute" inset={0} style={dragRegionStyle} />
-    <Box fontSize="13px" fontWeight={600} color="textMuted" letterSpacing="0.5px" pointerEvents="none">
+    <Box fontSize="xs" fontWeight="semibold" color="textMuted" letterSpacing="wide" pointerEvents="none">
       Action Cam Data Transporter
     </Box>
   </Box>

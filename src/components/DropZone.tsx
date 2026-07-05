@@ -42,22 +42,23 @@ export const DropZone = ({ id, icon: Icon, onClick, onDrop, disabled }: DropZone
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       border="2px dashed"
-      borderColor={isDragOver ? 'accent' : 'borderDefault'}
-      borderRadius="14px"
-      padding="24px 16px"
+      borderColor={isDragOver ? 'mediaVideoAccent' : 'borderDefault'}
+      borderRadius="2xl"
+      paddingY="6"
+      paddingX="4"
       textAlign="center"
-      bg={isDragOver ? 'rgba(0, 242, 254, 0.08)' : 'rgba(255, 255, 255, 0.02)'}
+      bg={isDragOver ? 'overlayMedium' : 'overlaySubtle'}
       cursor="pointer"
       transform={isDragOver ? 'scale(0.98)' : undefined}
       transition="all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
       display="flex"
       flexDirection="column"
       alignItems="center"
-      gap="12px"
-      _hover={{ borderColor: 'primaryLight', bg: 'rgba(138, 43, 226, 0.05)' }}
+      gap="3"
+      _hover={{ borderColor: 'brandPrimaryHover', bg: 'brandPrimaryMuted' }}
     >
-      <ChakraIcon boxSize="32px" color="textMuted" transition="color 0.3s" _groupHover={{ color: 'primaryLight' }} />
-      <Box as="span" fontSize="12px" color="textMuted" lineHeight="1.5">
+      <ChakraIcon boxSize="8" color="textMuted" transition="color 0.3s" _groupHover={{ color: 'brandPrimaryHover' }} />
+      <Box as="span" fontSize="xs" color="textMuted" lineHeight="1.5">
         フォルダをドラッグ＆ドロップ
         <br />
         またはクリックして選択

@@ -10,6 +10,7 @@ import { ProgressPanel } from './components/ProgressPanel';
 import { TitleBar } from './components/TitleBar';
 import { useCopyOperation } from './hooks/useCopyOperation';
 import { useDirectoryScan } from './hooks/useDirectoryScan';
+import { gradients, layout, zIndices } from './theme';
 
 export const App = () => {
   const [currentTab, setCurrentTab] = useState<'src' | 'dest'>('src');
@@ -37,49 +38,49 @@ export const App = () => {
     <>
       <TitleBar />
 
-      <Flex flex={1} height="calc(100vh - 38px)" position="relative">
+      <Flex flex={1} height={`calc(100vh - ${layout.titleBarHeight})`} position="relative">
         <Box
           as="aside"
-          width="340px"
+          width={layout.sidebarWidth}
           bg="bgSidebar"
           backdropFilter="blur(20px)"
-          borderRight="1px solid"
+          borderRight="sm"
           borderColor="borderDefault"
-          padding="24px"
+          padding="6"
           display="flex"
           flexDirection="column"
-          gap="24px"
+          gap="6"
           overflowY="auto"
-          zIndex={10}
+          zIndex={zIndices.sidebar}
         >
-          <Flex alignItems="center" gap="14px" marginBottom="10px">
+          <Flex alignItems="center" gap="3.5" marginBottom="2.5">
             <Flex
-              width="44px"
-              height="44px"
-              bg="linear-gradient(135deg, #8a2be2, #4a00e0)"
-              borderRadius="12px"
+              width="11"
+              height="11"
+              bg={gradients.primary}
+              borderRadius="xl"
               alignItems="center"
               justifyContent="center"
-              color="#fff"
-              boxShadow="0 4px 15px rgba(138, 43, 226, 0.4)"
+              color="textInverse"
+              boxShadow="brandGlow"
             >
               <Aperture />
             </Flex>
             <Box>
               <Box
                 as="h1"
-                fontSize="20px"
-                fontWeight={800}
-                letterSpacing="-0.5px"
+                fontSize="xl"
+                fontWeight="extrabold"
+                letterSpacing="tight"
                 bgGradient="to-r"
-                gradientFrom="#fff"
-                gradientTo="#b983ff"
+                gradientFrom="textInverse"
+                gradientTo="brandPrimaryHover"
                 bgClip="text"
                 color="transparent"
               >
                 Transporter
               </Box>
-              <Box as="p" fontSize="11px" color="textMuted">
+              <Box as="p" fontSize="2xs" color="textMuted">
                 Action Cam Backup Tool
               </Box>
             </Box>
@@ -126,7 +127,7 @@ export const App = () => {
             onTabChange={setCurrentTab}
           />
 
-          <Box as="section" flex={1} padding="24px" overflowY="auto">
+          <Box as="section" flex={1} padding="6" overflowY="auto">
             <GalleryGrid files={files} currentTab={currentTab} onFileClick={setPreviewFile} />
           </Box>
         </Box>
