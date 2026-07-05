@@ -75,7 +75,7 @@
 - **単体テスト ([Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/))**: 対象は `src/**/*.tests.*` に限定します。テスト対象ファイルと同じディレクトリ内の `__tests__/` ディレクトリに `<対象ファイル名>.tests.ts`（コンポーネントは `.tests.tsx`）として配置してください（例: `src/utils/format.ts` → `src/utils/__tests__/format.tests.ts`）。
   - 実行環境はjsdom、セットアップファイルは `src/vitest.setup.ts`（`@testing-library/jest-dom/vitest` を読み込み）。
   - `npm run test:unit` で実行します。
-  - 単体テスト作成・実行時に必ず守るルール・観点は [test_rules.md](file:///Users/fujiwalatex/LocalRepositories/github/transport_action_cam_data/test_rules.md) に記載しています（AAAパターン、分岐網羅、specs優先、疎結合、ファイル配置等）。
+  - 単体テスト作成・実行時に必ず守るルール・観点は [test_rules.md](./test_rules.md) に記載しています（AAAパターン、分岐網羅、specs優先、疎結合、ファイル配置等）。
 - `src/tests/` 配下は Playwright の E2E テスト用です（`playwright.config.ts` の `testDir`）。E2Eテストにも `test_rules.md` のルールが適用されます。
 - **Lint / Format ([Biome](https://biomejs.dev/))**: `rules.md` のコーディング規約に基づき `biome.json` を設定しています。対象は `src/**`, `electron/**`, `style.css`。
   - `npm run lint` / `npm run lint:fix` で手動実行できます。
@@ -92,6 +92,6 @@ AIエージェントが作業中にローカルファイルに変更を加えた
 
 * **配置場所**: `.agents/skills/auto-commit/`（実体）。`.claude/skills/auto-commit/` はこのファイルへのシンボリックリンクで、Claude Code からも `/auto-commit` として呼び出せます。
 * **動作ルール**: AIエージェントはローカルファイルの変更を検知すると、自動的に本スキルを起動します。
-* **コミット規約 ([commit_rules.md](file:///Users/fujiwalatex/LocalRepositories/github/transport_action_cam_data/commit_rules.md))**: プロジェクトルートにある `commit_rules.md` に従って、テストの実行、コミットメッセージの要約（1行程度）、コミット前のユーザー承認 (Y/N) などを実施します。
+* **コミット規約 ([commit_rules.md](./commit_rules.md))**: プロジェクトルートにある `commit_rules.md` に従って、テストの実行、コミットメッセージの要約（1行程度）、コミット前のユーザー承認 (Y/N) などを実施します。
 * **注意**: このスキルを通じて `git push` が自動で実行されることは絶対にありません。
 

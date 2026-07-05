@@ -43,7 +43,7 @@
 プロジェクト内の以下の構造でカスタムスキルおよび関連ファイルを作成します。
 
 ```text
-/Users/fujiwalatex/LocalRepositories/github/transport_action_cam_data/
+./ (プロジェクトルート)
 ├── .agents/
 │   └── skills/
 │       └── auto-commit/

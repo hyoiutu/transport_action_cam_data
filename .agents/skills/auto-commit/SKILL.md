@@ -19,7 +19,7 @@ AIエージェントがタスクの実行中または完了時に、ローカル
 - `git status` および `git diff` を使用して、どのようなファイルに変更が発生したかを確認します。
 
 ### 2. コミット規約の読み込み
-- プロジェクトのルートディレクトリにある [commit_rules.md](file:///Users/fujiwalatex/LocalRepositories/github/transport_action_cam_data/commit_rules.md) を読み込みます。
+- プロジェクトのルートディレクトリにある [commit_rules.md](../../../commit_rules.md) を読み込みます。
 - 記載されているルール（特にプッシュの禁止、テスト・リントの無視禁止など）を再確認します。
 
 ### 3. テスト・リント・型チェックの検証
