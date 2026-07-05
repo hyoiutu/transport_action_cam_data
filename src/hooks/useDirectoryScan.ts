@@ -11,8 +11,8 @@ const buildScanCompleteMessage = (srcCount: number, destCount: number): string =
 export const useDirectoryScan = () => {
   const [srcPath, setSrcPath] = useState('');
   const [destPath, setDestPath] = useState('');
-  const [srcFiles, setSrcFiles] = useState<FileInfo[]>([]);
-  const [destFiles, setDestFiles] = useState<FileInfo[]>([]);
+  const [srcFiles, setSrcFiles] = useState<DirectoryEntry[]>([]);
+  const [destFiles, setDestFiles] = useState<DirectoryEntry[]>([]);
   const [scanningTarget, setScanningTarget] = useState<'src' | 'dest' | null>(null);
 
   useEffect(() => {

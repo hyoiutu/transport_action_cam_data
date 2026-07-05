@@ -95,11 +95,14 @@ test.describe('Action Cam Data Transporter E2Eテスト', () => {
       { src: srcDir, dest: destDir }
     );
 
-    // スキャンされた最初のファイル情報（日付とファイル名）を動的に取得
+    // スキャンされた最初のメディアファイル情報（日付とファイル名）を動的に取得（フォルダは対象外）
     const { firstFileDate, firstFileName } = await page.evaluate(() => {
+      const isFileEntry = (entry: DirectoryEntry): entry is FileInfo => entry.type !== 'folder';
+      const firstMediaFile = window.srcFiles.find(isFileEntry);
+      if (!firstMediaFile) throw new Error('メディアファイルが見つかりません');
       return {
-        firstFileDate: window.srcFiles[0].creationDate,
-        firstFileName: window.srcFiles[0].name
+        firstFileDate: firstMediaFile.creationDate,
+        firstFileName: firstMediaFile.name
       };
     });
 
@@ -131,5 +134,36 @@ test.describe('Action Cam Data Transporter E2Eテスト', () => {
     const baseName = path.basename(firstFileName, ext);
     const duplicatedFile = path.join(expectedSubDir, `${baseName}_1${ext}`);
     expect(fs.existsSync(duplicatedFile)).toBe(true);
+  });
+
+  test('4. フォルダ表示とナビゲーションの検証', async () => {
+    // フォルダ設定・スキャン・コピーを実行し、コピー先に撮影日サブフォルダを作らせる
+    await page.evaluate(
+      async ({ src, dest }: { src: string; dest: string }) => {
+        await window.updateDirectory('src', src);
+        await window.updateDirectory('dest', dest);
+      },
+      { src: srcDir, dest: destDir }
+    );
+    await page.locator('#btn-start-copy').click();
+    await expect(page.locator('#progress-status')).toHaveText('コピー完了！', { timeout: 15000 });
+
+    // コピー完了後は自動的にコピー先が再スキャンされ、撮影日フォルダがフォルダカードとして表示される
+    await page.locator('#tab-dest').click();
+    const folderCard = page.locator('.folder-card').first();
+    await expect(folderCard).toBeVisible();
+    const folderName = (await folderCard.textContent())?.trim();
+
+    // フォルダカードをクリックすると、そのフォルダへ移動しサイドバーのパス表示が更新される
+    await folderCard.click();
+    const destPathDisplay = page.locator('#dest-path-display');
+    await expect(destPathDisplay).toHaveText(path.join(destDir, folderName ?? ''));
+
+    // 移動先フォルダの中身（コピーされたファイル）が表示される
+    await expect(page.locator('.file-card').first()).toBeVisible();
+
+    // 「一つ上へ」で元のコピー先フォルダに戻る
+    await page.locator('#dest-navigate-up').click();
+    await expect(destPathDisplay).toHaveText(destDir);
   });
 });

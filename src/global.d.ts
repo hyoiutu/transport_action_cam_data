@@ -7,6 +7,14 @@ type FileInfo = {
   dateSource: string;
 };
 
+type FolderInfo = {
+  name: string;
+  path: string;
+  type: 'folder';
+};
+
+type DirectoryEntry = FileInfo | FolderInfo;
+
 type CopyProgressData = {
   status: 'copying' | 'completed' | 'cancelled';
   copiedCount: number;
@@ -23,13 +31,14 @@ type CopyErrorData = {
 interface Window {
   api: {
     selectDirectory: (defaultPath?: string) => Promise<string | null>;
-    scanDirectory: (dirPath: string) => Promise<FileInfo[]>;
+    scanDirectory: (dirPath: string) => Promise<DirectoryEntry[]>;
     startCopy: (files: FileInfo[], destinationDir: string) => Promise<{ status: string; copiedCount: number }>;
     cancelCopy: () => Promise<boolean>;
     onCopyProgress: (callback: (data: CopyProgressData) => void) => () => void;
     onCopyError: (callback: (data: CopyErrorData) => void) => () => void;
+    getParentDirectory: (currentPath: string) => string;
   };
-  srcFiles: FileInfo[];
-  destFiles: FileInfo[];
+  srcFiles: DirectoryEntry[];
+  destFiles: DirectoryEntry[];
   updateDirectory: (type: 'src' | 'dest', pathStr: string) => Promise<void>;
 }

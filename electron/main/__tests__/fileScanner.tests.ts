@@ -60,7 +60,7 @@ describe('scanDirectoryに関するテスト', () => {
     expect(result).toEqual([]);
   });
 
-  test('サブディレクトリはスキャン対象から除外される', async () => {
+  test('サブディレクトリはFolderInfoとして結果に含まれる', async () => {
     // Arrange
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.readdirSync).mockReturnValue([createDirent('subdir', true)] as unknown as ReturnType<
@@ -71,7 +71,31 @@ describe('scanDirectoryに関するテスト', () => {
     const result = await scanDirectory('/dir');
 
     // Assert
-    expect(result).toEqual([]);
+    expect(result).toEqual([{ name: 'subdir', path: '/dir/subdir', type: 'folder' }]);
+  });
+
+  test('フォルダとファイルが混在する場合、フォルダが先・ファイルが後になり、それぞれ名前順にソートされる', async () => {
+    // Arrange
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readdirSync).mockReturnValue([
+      createDirent('b.mp4'),
+      createDirent('zebra', true),
+      createDirent('a.jpg'),
+      createDirent('apple', true)
+    ] as unknown as ReturnType<typeof fs.readdirSync>);
+    vi.mocked(fs.statSync).mockReturnValue({ size: 100 } as unknown as ReturnType<typeof fs.statSync>);
+    vi.mocked(dateResolution.resolveCreationDateInfo).mockResolvedValue({
+      creationDate: new Date('2026-01-02T00:00:00.000Z'),
+      dateSource: 'metadata'
+    });
+    vi.mocked(dateResolution.formatJstDate).mockReturnValue('2026-01-02');
+
+    // Act
+    const result = await scanDirectory('/dir');
+
+    // Assert
+    expect(result.map((entry) => entry.name)).toEqual(['apple', 'zebra', 'a.jpg', 'b.mp4']);
+    expect(result.slice(0, 2).every((entry) => entry.type === 'folder')).toBe(true);
   });
 
   test('許可されていない拡張子のファイルは除外される', async () => {

@@ -7,3 +7,10 @@ export const createFileInfo = (overrides: Partial<FileInfo> = {}): FileInfo => (
   dateSource: 'metadata',
   ...overrides
 });
+
+export const createFolderInfo = (overrides: Partial<FolderInfo> = {}): FolderInfo => ({
+  name: 'sample-folder',
+  path: '/path/to/sample-folder',
+  type: 'folder',
+  ...overrides
+});

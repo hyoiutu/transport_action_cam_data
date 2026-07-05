@@ -1,6 +1,6 @@
 import { Box, Flex } from '@chakra-ui/react';
 import { Aperture, DownloadCloud, FolderInput, FolderOutput, UploadCloud } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ContentTabs } from './components/ContentTabs';
 import { CopyActions } from './components/CopyActions';
 import { DirectorySelector } from './components/DirectorySelector';
@@ -11,25 +11,38 @@ import { TitleBar } from './components/TitleBar';
 import { useCopyOperation } from './hooks/useCopyOperation';
 import { useDirectoryScan } from './hooks/useDirectoryScan';
 import { gradients, layout, zIndices } from './theme';
+import { isMediaFile } from './utils/directoryEntry';
 
 export const App = () => {
   const [currentTab, setCurrentTab] = useState<'src' | 'dest'>('src');
   const [previewFile, setPreviewFile] = useState<FileInfo | null>(null);
 
   const { srcPath, destPath, srcFiles, destFiles, scanInfo, updateDirectory } = useDirectoryScan();
+  const srcMediaFiles = useMemo(() => srcFiles.filter(isMediaFile), [srcFiles]);
+  const destMediaFiles = useMemo(() => destFiles.filter(isMediaFile), [destFiles]);
   const { isCopying, progress, canStartCopy, startCopy } = useCopyOperation({
-    srcFiles,
+    srcFiles: srcMediaFiles,
     destPath,
     onCopyFinished: () => updateDirectory('dest', destPath)
   });
 
-  const files = currentTab === 'src' ? srcFiles : destFiles;
+  const entries = currentTab === 'src' ? srcFiles : destFiles;
 
   const handleSelectDirectory = async (type: 'src' | 'dest') => {
     if (isCopying) return;
     const currentPath = type === 'src' ? srcPath : destPath;
     const selectedPath = await window.api.selectDirectory(currentPath);
     if (selectedPath) await updateDirectory(type, selectedPath);
+  };
+
+  const handleFolderClick = (folder: FolderInfo): void => {
+    if (isCopying) return;
+    updateDirectory(currentTab, folder.path);
+  };
+
+  const handleNavigateUp = (type: 'src' | 'dest', path: string): void => {
+    if (isCopying || path === '') return;
+    updateDirectory(type, window.api.getParentDirectory(path));
   };
 
   const closePreview = (): void => setPreviewFile(null);
@@ -95,6 +108,7 @@ export const App = () => {
             disabled={isCopying}
             onSelect={() => handleSelectDirectory('src')}
             onDrop={(path) => updateDirectory('src', path)}
+            onNavigateUp={() => handleNavigateUp('src', srcPath)}
           />
 
           <DirectorySelector
@@ -106,6 +120,7 @@ export const App = () => {
             disabled={isCopying}
             onSelect={() => handleSelectDirectory('dest')}
             onDrop={(path) => updateDirectory('dest', path)}
+            onNavigateUp={() => handleNavigateUp('dest', destPath)}
           />
 
           <CopyActions
@@ -121,14 +136,19 @@ export const App = () => {
         <Box as="main" flex={1} display="flex" flexDirection="column" bg="bgMain">
           <ContentTabs
             currentTab={currentTab}
-            srcCount={srcFiles.length}
-            destCount={destFiles.length}
+            srcCount={srcMediaFiles.length}
+            destCount={destMediaFiles.length}
             scanInfo={scanInfo}
             onTabChange={setCurrentTab}
           />
 
           <Box as="section" flex={1} padding="6" overflowY="auto">
-            <GalleryGrid files={files} currentTab={currentTab} onFileClick={setPreviewFile} />
+            <GalleryGrid
+              files={entries}
+              currentTab={currentTab}
+              onFileClick={setPreviewFile}
+              onFolderClick={handleFolderClick}
+            />
           </Box>
         </Box>
       </Flex>

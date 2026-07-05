@@ -7,6 +7,7 @@ type ExposedApi = {
   cancelCopy: () => unknown;
   onCopyProgress: (callback: (data: unknown) => void) => () => void;
   onCopyError: (callback: (data: unknown) => void) => () => void;
+  getParentDirectory: (currentPath: string) => string;
 };
 
 let exposedApi: ExposedApi | undefined;
@@ -158,5 +159,18 @@ describe('preloadに関するテスト', () => {
 
     // Assert
     expect(ipcRenderer.removeListener).toHaveBeenCalledWith('copy-error', subscription);
+  });
+
+  test('getParentDirectoryは指定パスの親ディレクトリを返す（IPCを経由しない）', () => {
+    // Arrange
+    const api = getApi();
+    const invokeCallCountBefore = vi.mocked(ipcRenderer.invoke).mock.calls.length;
+
+    // Act
+    const result = api.getParentDirectory('/dest/2026-01-01');
+
+    // Assert
+    expect(result).toBe('/dest');
+    expect(vi.mocked(ipcRenderer.invoke).mock.calls.length).toBe(invokeCallCountBefore);
   });
 });

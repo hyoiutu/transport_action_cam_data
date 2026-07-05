@@ -17,6 +17,7 @@ describe('DirectorySelectorに関するテスト', () => {
         disabled={false}
         onSelect={vi.fn()}
         onDrop={vi.fn()}
+        onNavigateUp={vi.fn()}
       />
     );
 
@@ -36,6 +37,7 @@ describe('DirectorySelectorに関するテスト', () => {
         disabled={false}
         onSelect={vi.fn()}
         onDrop={vi.fn()}
+        onNavigateUp={vi.fn()}
       />
     );
 
@@ -55,6 +57,7 @@ describe('DirectorySelectorに関するテスト', () => {
         disabled={false}
         onSelect={vi.fn()}
         onDrop={vi.fn()}
+        onNavigateUp={vi.fn()}
       />
     );
 
@@ -75,6 +78,7 @@ describe('DirectorySelectorに関するテスト', () => {
         disabled={false}
         onSelect={onSelect}
         onDrop={vi.fn()}
+        onNavigateUp={vi.fn()}
       />
     );
 
@@ -83,5 +87,69 @@ describe('DirectorySelectorに関するテスト', () => {
 
     // Assert
     expect(onSelect).toHaveBeenCalledTimes(1);
+  });
+
+  test('pathが空のとき、一つ上へボタンは無効化される', () => {
+    // Arrange & Act
+    renderWithChakra(
+      <DirectorySelector
+        type="src"
+        labelIcon={FolderInput}
+        labelText="Label"
+        dropZoneIcon={UploadCloud}
+        path=""
+        disabled={false}
+        onSelect={vi.fn()}
+        onDrop={vi.fn()}
+        onNavigateUp={vi.fn()}
+      />
+    );
+
+    // Assert
+    expect(screen.getByRole('button', { name: /一つ上へ/ })).toBeDisabled();
+  });
+
+  test('disabledがtrueのとき、一つ上へボタンは無効化される', () => {
+    // Arrange & Act
+    renderWithChakra(
+      <DirectorySelector
+        type="src"
+        labelIcon={FolderInput}
+        labelText="Label"
+        dropZoneIcon={UploadCloud}
+        path="/foo/bar"
+        disabled={true}
+        onSelect={vi.fn()}
+        onDrop={vi.fn()}
+        onNavigateUp={vi.fn()}
+      />
+    );
+
+    // Assert
+    expect(screen.getByRole('button', { name: /一つ上へ/ })).toBeDisabled();
+  });
+
+  test('pathが指定されているとき、一つ上へボタンをクリックするとonNavigateUpが呼ばれる', () => {
+    // Arrange
+    const onNavigateUp = vi.fn();
+    renderWithChakra(
+      <DirectorySelector
+        type="src"
+        labelIcon={FolderInput}
+        labelText="Label"
+        dropZoneIcon={UploadCloud}
+        path="/foo/bar"
+        disabled={false}
+        onSelect={vi.fn()}
+        onDrop={vi.fn()}
+        onNavigateUp={onNavigateUp}
+      />
+    );
+
+    // Act
+    fireEvent.click(screen.getByRole('button', { name: /一つ上へ/ }));
+
+    // Assert
+    expect(onNavigateUp).toHaveBeenCalledTimes(1);
   });
 });

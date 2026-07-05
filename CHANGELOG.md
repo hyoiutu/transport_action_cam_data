@@ -14,6 +14,23 @@
 
 ## 変更履歴
 
+### [2026-07-05] コピー元・コピー先のフォルダ表示とフォルダ間ナビゲーション機能を追加した
+* **修正の動機・概要**:
+  - 従来`scanDirectory`はサブディレクトリを無条件でスキップしており、コピー元・コピー先フォルダ直下のファイルしか表示できなかった。コピー後は撮影日ごとのサブフォルダ（`YYYY-MM-DD/`）が自動生成される仕様のため、コピー先を選択しただけでは直下に何も表示されず、コピー結果をアプリ内からすぐに確認できない問題があった。ユーザー要望を受け、(1) ギャラリーにファイルだけでなくフォルダも表示する、(2) フォルダクリックでその中身へ移動する、(3) 移動時にサイドバーのパス表示も更新する、機能を追加した。ナビゲーションはコピー元/コピー先フォルダ（`srcPath`/`destPath`）自体を更新する仕様とし（移動後にコピーを開始すると現在表示中のフォルダが対象になる）、親フォルダへ戻る「一つ上へ」操作もあわせて実装した。
+* **各ファイルへの影響と変更内容**:
+  - **型定義**: `electron/types/domain.ts` / `src/global.d.ts`に`FolderInfo`・`DirectoryEntry`（`FileInfo | FolderInfo`）を追加。`scanDirectory`・`window.api.scanDirectory`・`window.srcFiles`/`window.destFiles`の型を`DirectoryEntry[]`に変更（既存の`FileInfo`型自体は変更なし）。
+  - **`electron/main/fileScanner.ts`**: サブディレクトリを`continue`でスキップする代わりに`FolderInfo`として結果に含めるよう変更（TDD: 先にテストを追加しRedを確認してから実装）。結果は「フォルダを先に、ファイルをあとに、それぞれ名前順」でソートする。
+  - **`electron/preload/preload.ts`**: `getParentDirectory`（`node:path`の`dirname`）を追加。IPC往復が不要な純粋関数のため、preloadから直接公開しメインプロセスを介さない。
+  - **`src/utils/directoryEntry.ts`**（新規）: `DirectoryEntry`から`FileInfo`を絞り込む型ガード`isMediaFile`を追加。
+  - **`src/components/FolderCard.tsx`**（新規）: フォルダアイコン＋名前を表示し、クリックでナビゲーションする専用コンポーネント。
+  - **`src/components/GalleryGrid.tsx`**: `entry.type === 'folder'`で`FolderCard`（`onFolderClick`）、それ以外は`FileCard`（`onFileClick`）を描画するよう分岐。
+  - **`src/components/DirectorySelector.tsx`**: 「一つ上へ」ボタン（`onNavigateUp`）を追加。パス未選択またはコピー中は無効化する。
+  - **`src/App.tsx`**: `srcFiles`/`destFiles`（`DirectoryEntry[]`）から`isMediaFile`で絞り込んだ`FileInfo[]`をコピー処理・件数表示に使用。フォルダクリックとナビゲーションのハンドラを追加し、既存の`updateDirectory`（`useDirectoryScan`）をそのまま再利用することでサイドバーのパス表示も自動的に更新されるようにした。
+  - **テスト**: `fileScanner.tests.ts`・`preload.tests.ts`・`GalleryGrid.tests.ts`・`DirectorySelector.tests.tsx`を更新し、`FolderCard.tests.tsx`・`directoryEntry.tests.ts`を新規追加。`e2e.spec.ts`にフォルダ表示・ナビゲーションを検証する新規ケース（4件目）を追加し、`window.srcFiles[0]`への型安全でないアクセスを型ガード付きの絞り込みに修正。`module-format.spec.ts`に新規ファイルを追加。
+  - **仕様書**: `specs/system_specification.md`の「2.1 フォルダ選択・パス管理」にフォルダ表示・ナビゲーションの仕様を追記し、「2.2」の対応フォーマット説明にあった「サブディレクトリはスキャン対象外」という記述を、フォルダとして表示・移動できる旨に更新した（コピー対象・件数カウントには含まれない点は維持）。
+  - **rules.md**: 新規ルール追加の必要はないため変更なし。
+  - `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:unit`（24ファイル・133テスト成功）, `npm run test:e2e`（全7テスト成功、新規のフォルダナビゲーションケース含む）で動作確認済み。実アプリのスクリーンショットで、コピー先フォルダの日付フォルダがフォルダカードとして表示され、クリックでの移動とサイドバーのパス表示更新を目視確認した。
+
 ### [2026-07-05] 仕様書に異常系・エッジケースの挙動を追記した
 * **修正の動機・概要**:
   - `specs/system_specification.md`には正常系の機能要件のみが記載されており、実装上は明確に存在する異常系・エッジケースの挙動（スキャン結果0件、対応フォーマットの厳密な範囲、コピーキャンセルの詳細、コピー中エラーの扱い等）が書かれていなかった。ユーザーからの指摘を受け、コードを変更せず、実際の実装（`electron/main/fileScanner.ts`, `electron/ipc/startCopyHandler.ts`, `src/hooks/useDirectoryScan.ts`, `src/hooks/useCopyOperation.ts`, `src/utils/errorHandling.ts`, `electron/main/main.ts`）を確認した上で、その挙動を仕様書へ書き起こした。

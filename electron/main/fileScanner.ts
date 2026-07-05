@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { FileInfo } from '../types/domain.js';
+import type { DirectoryEntry, FileInfo, FolderInfo } from '../types/domain.js';
 import { formatJstDate, resolveCreationDateInfo } from './dateResolution.js';
 
 const ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.avi', '.mkv'];
@@ -14,18 +14,24 @@ export const resolveFileCategory = (ext: string): FileCategory => {
   return null;
 };
 
-export const scanDirectory = async (dirPath: string): Promise<FileInfo[]> => {
+const byNameAscending = (a: { name: string }, b: { name: string }): number => a.name.localeCompare(b.name);
+
+export const scanDirectory = async (dirPath: string): Promise<DirectoryEntry[]> => {
   if (!dirPath || !fs.existsSync(dirPath)) {
     return [];
   }
 
+  const folders: FolderInfo[] = [];
   const files: FileInfo[] = [];
 
   try {
     const list = fs.readdirSync(dirPath, { withFileTypes: true });
 
     for (const dirent of list) {
-      if (dirent.isDirectory()) continue; // サブディレクトリはスキャンしない（ミニマム対応）
+      if (dirent.isDirectory()) {
+        folders.push({ name: dirent.name, path: path.join(dirPath, dirent.name), type: 'folder' });
+        continue;
+      }
 
       const ext = path.extname(dirent.name).toLowerCase();
       const category = resolveFileCategory(ext);
@@ -50,5 +56,6 @@ export const scanDirectory = async (dirPath: string): Promise<FileInfo[]> => {
     throw err;
   }
 
-  return files;
+  // フォルダを先に、ファイルをあとに、それぞれ名前順で表示する（一般的なファイルブラウザの慣習に合わせる）
+  return [...folders.sort(byNameAscending), ...files.sort(byNameAscending)];
 };

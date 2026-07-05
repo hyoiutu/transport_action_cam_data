@@ -16,7 +16,8 @@ export const createMockElectronApi = () => {
     onCopyError: vi.fn((callback: (data: CopyErrorData) => void) => {
       errorCallback = callback;
       return vi.fn();
-    })
+    }),
+    getParentDirectory: vi.fn((currentPath: string) => currentPath.split('/').slice(0, -1).join('/') || '/')
   };
 
   return {
