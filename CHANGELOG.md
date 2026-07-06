@@ -14,6 +14,15 @@
 
 ## 変更履歴
 
+### [2026-07-06] GitHub MCP Serverのセットアップ方式を`.mcp.json`によるプロジェクトスコープ管理に変更した
+* **修正の動機・概要**:
+  - GitHub MCP Serverの利用方法として、リポジトリ直下に`.mcp.json`（プロジェクトスコープの設定ファイル、トークン自体は含まず`${GITHUB_PERSONAL_ACCESS_TOKEN}`という環境変数参照のみを記載）を配置し、チーム全体で共有する方式を採用することになった。これに伴い、README.mdに記載していた`claude mcp add`コマンドによる各自でのローカル登録手順（`local`スコープ）が実態と乖離したため、`.mcp.json`を前提とした手順に修正した。
+* **各ファイルへの影響と変更内容**:
+  * **実装**: `.mcp.json`（新規）を追加。`github`サーバーを`type: http`、`url: https://api.githubcopilot.com/mcp/`、`headers.Authorization: Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}`として定義。
+  * **README.md**: 「前提: GitHub MCP Serverのセットアップ」の手順を、`claude mcp add`によるローカル登録から、`.mcp.json`（コミット済み）を前提とした手順に修正。発行したトークンは`.mcp.json`に書き込まず、環境変数`GITHUB_PERSONAL_ACCESS_TOKEN`として各自のシェル環境に設定すること、初回オープン時にプロジェクトスコープMCPサーバーの利用承認が必要になることを追記。接続確認手順（`claude mcp list`）は変更なし。
+  * **仕様書**: 該当なし（GitHub MCP Serverのセットアップ手順は`specs/`配下の仕様書では扱っていないため修正なし）。
+  * コードの変更を伴わないため、`npm run test:unit`等の実行は不要。
+
 ### [2026-07-06] GitHub Issueをもとに実装を進めるissue-implementスキルを追加した
 * **修正の動機・概要**:
   - [Issue #10](https://github.com/hyoiutu/transport_action_cam_data/issues/10)にて、GitHub Issueの内容を人間が都度読んでプロンプトで指示するより、AIエージェントが直接読んで実装した方が効率的だという要望があった。GitHub MCPサーバーが利用可能になったことを受け、Issueの内容をもとに実装を進めるカスタムスキル`issue-implement`を新規作成した。

@@ -99,15 +99,12 @@ AIエージェントが作業中にローカルファイルに変更を加えた
 GitHub Issueの内容をもとに、AIエージェントが人間の都度の指示を介さずに実装・修正を進めるためのカスタムスキルです。
 
 #### 前提: GitHub MCP Serverのセットアップ
-本スキルはAIエージェントがGitHub Issueを直接読み取れるよう、GitHub公式のリモートMCPサーバー（`https://api.githubcopilot.com/mcp/`）を利用します（Dockerでローカルにホストする方式は本プロジェクトでは使用していません）。
+本スキルはAIエージェントがGitHub Issueを直接読み取れるよう、GitHub公式のリモートMCPサーバー（`https://api.githubcopilot.com/mcp/`）を利用します（Dockerでローカルにホストする方式は本プロジェクトでは使用していません）。サーバー定義はリポジトリ直下の [`.mcp.json`](./.mcp.json) にプロジェクトスコープとしてコミット済みのため、`claude mcp add` によるセットアップは不要です。
 
 1. GitHubでPersonal Access Token（Fine-grained tokenまたはClassic token）を発行します。Issueの読み書きを行うため、対象リポジトリに対して最低限 `repo`（プライベートリポジトリの場合）または `public_repo`（パブリックリポジトリの場合）相当のスコープ・権限を付与してください。
-2. 発行したトークンを使って、以下のコマンドでMCPサーバーをClaude Codeに登録します。
-   ```bash
-   claude mcp add --transport http github https://api.githubcopilot.com/mcp/ --header "Authorization: Bearer <発行したPersonal Access Token>"
-   ```
-   - スコープ（`-s`）を省略した場合はデフォルトの`local`スコープで登録され、認証情報を含む設定は各自の `~/.claude.json` に保存されます。**リポジトリ内のファイルやコミットにトークンを含めないでください。**
-3. `claude mcp list` を実行し、`github: https://api.githubcopilot.com/mcp/ (HTTP) - ✔ Connected` と表示されれば設定完了です。
+2. 発行したトークンを、環境変数 `GITHUB_PERSONAL_ACCESS_TOKEN` として自分のシェル環境（`~/.zshrc` など）に設定します。`.mcp.json` はこの環境変数を `${GITHUB_PERSONAL_ACCESS_TOKEN}` として参照するのみで、トークン自体は含まれていません。**トークンを直接 `.mcp.json` やその他リポジトリ内のファイルに書き込まないでください。**
+3. 本リポジトリをClaude Codeで開くと、初回のみ `.mcp.json` に定義されたプロジェクトスコープのMCPサーバーを使用するかどうかの承認を求められるので、承認します。
+4. `claude mcp list` を実行し、`github: https://api.githubcopilot.com/mcp/ (HTTP) - ✔ Connected` と表示されれば設定完了です。
 
 * **配置場所**: `.agents/skills/issue-implement/`（実体）。`.claude/skills/issue-implement/` はこのファイルへのシンボリックリンクで、Claude Code からも `/issue-implement` として呼び出せます。
 * **動作ルール**: 起動時に必ず「対象のGitHub Issue番号」「ブランチ名（希望がなければAIが命名）」「派生元ブランチ（デフォルトは現在のブランチ）」をユーザーに確認したうえで実装を開始します。
