@@ -13,11 +13,12 @@ const buildEntryKey = (entry: DirectoryEntry): string => `${entry.path}-${entry.
 type GalleryGridProps = {
   files: DirectoryEntry[];
   currentTab: 'src' | 'dest';
+  disabled: boolean;
   onFileClick: (file: FileInfo) => void;
   onFolderClick: (folder: FolderInfo) => void;
 };
 
-export const GalleryGrid = ({ files, currentTab, onFileClick, onFolderClick }: GalleryGridProps) => {
+export const GalleryGrid = ({ files, currentTab, disabled, onFileClick, onFolderClick }: GalleryGridProps) => {
   if (files.length === 0) {
     const emptyMessage = currentTab === 'src' ? EMPTY_MESSAGE_SRC : EMPTY_MESSAGE_DEST;
     return (
@@ -36,7 +37,12 @@ export const GalleryGrid = ({ files, currentTab, onFileClick, onFolderClick }: G
         isMediaFile(entry) ? (
           <FileCard key={buildEntryKey(entry)} file={entry} onClick={() => onFileClick(entry)} />
         ) : (
-          <FolderCard key={buildEntryKey(entry)} folder={entry} onClick={() => onFolderClick(entry)} />
+          <FolderCard
+            key={buildEntryKey(entry)}
+            folder={entry}
+            disabled={disabled}
+            onClick={() => onFolderClick(entry)}
+          />
         )
       )}
     </SimpleGrid>

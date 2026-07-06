@@ -7,7 +7,9 @@ import { GalleryGrid } from '../GalleryGrid';
 describe('GalleryGridに関するテスト', () => {
   test('filesが空でcurrentTabがsrcのとき、コピー元向けの空状態メッセージが表示される', () => {
     // Arrange & Act
-    renderWithChakra(<GalleryGrid files={[]} currentTab="src" onFileClick={vi.fn()} onFolderClick={vi.fn()} />);
+    renderWithChakra(
+      <GalleryGrid files={[]} currentTab="src" disabled={false} onFileClick={vi.fn()} onFolderClick={vi.fn()} />
+    );
 
     // Assert
     expect(screen.getByText(/コピー元フォルダを選択してスキャンしてください/)).toBeInTheDocument();
@@ -15,7 +17,9 @@ describe('GalleryGridに関するテスト', () => {
 
   test('filesが空でcurrentTabがdestのとき、コピー先向けの空状態メッセージが表示される', () => {
     // Arrange & Act
-    renderWithChakra(<GalleryGrid files={[]} currentTab="dest" onFileClick={vi.fn()} onFolderClick={vi.fn()} />);
+    renderWithChakra(
+      <GalleryGrid files={[]} currentTab="dest" disabled={false} onFileClick={vi.fn()} onFolderClick={vi.fn()} />
+    );
 
     // Assert
     expect(screen.getByText(/コピー先フォルダに動画や画像がありません/)).toBeInTheDocument();
@@ -26,7 +30,9 @@ describe('GalleryGridに関するテスト', () => {
     const file = createFileInfo({ name: 'clip.mp4' });
 
     // Act
-    renderWithChakra(<GalleryGrid files={[file]} currentTab="src" onFileClick={vi.fn()} onFolderClick={vi.fn()} />);
+    renderWithChakra(
+      <GalleryGrid files={[file]} currentTab="src" disabled={false} onFileClick={vi.fn()} onFolderClick={vi.fn()} />
+    );
 
     // Assert
     expect(screen.getByText('clip.mp4')).toBeInTheDocument();
@@ -36,7 +42,9 @@ describe('GalleryGridに関するテスト', () => {
     // Arrange
     const file = createFileInfo({ name: 'clip.mp4' });
     const onFileClick = vi.fn();
-    renderWithChakra(<GalleryGrid files={[file]} currentTab="src" onFileClick={onFileClick} onFolderClick={vi.fn()} />);
+    renderWithChakra(
+      <GalleryGrid files={[file]} currentTab="src" disabled={false} onFileClick={onFileClick} onFolderClick={vi.fn()} />
+    );
 
     // Act
     fireEvent.click(screen.getByText('clip.mp4'));
@@ -50,7 +58,9 @@ describe('GalleryGridに関するテスト', () => {
     const folder = createFolderInfo({ name: 'DCIM' });
 
     // Act
-    renderWithChakra(<GalleryGrid files={[folder]} currentTab="src" onFileClick={vi.fn()} onFolderClick={vi.fn()} />);
+    renderWithChakra(
+      <GalleryGrid files={[folder]} currentTab="src" disabled={false} onFileClick={vi.fn()} onFolderClick={vi.fn()} />
+    );
 
     // Assert
     expect(screen.getByText('DCIM')).toBeInTheDocument();
@@ -62,7 +72,13 @@ describe('GalleryGridに関するテスト', () => {
     const onFileClick = vi.fn();
     const onFolderClick = vi.fn();
     renderWithChakra(
-      <GalleryGrid files={[folder]} currentTab="src" onFileClick={onFileClick} onFolderClick={onFolderClick} />
+      <GalleryGrid
+        files={[folder]}
+        currentTab="src"
+        disabled={false}
+        onFileClick={onFileClick}
+        onFolderClick={onFolderClick}
+      />
     );
 
     // Act
@@ -80,11 +96,43 @@ describe('GalleryGridに関するテスト', () => {
 
     // Act
     renderWithChakra(
-      <GalleryGrid files={[folder, file]} currentTab="src" onFileClick={vi.fn()} onFolderClick={vi.fn()} />
+      <GalleryGrid
+        files={[folder, file]}
+        currentTab="src"
+        disabled={false}
+        onFileClick={vi.fn()}
+        onFolderClick={vi.fn()}
+      />
     );
 
     // Assert
     expect(screen.getByText('DCIM')).toBeInTheDocument();
     expect(screen.getByText('clip.mp4')).toBeInTheDocument();
+  });
+
+  test('disabled=falseのとき、フォルダカードのaria-disabled属性はfalseになる', () => {
+    // Arrange
+    const folder = createFolderInfo({ name: 'DCIM' });
+
+    // Act
+    renderWithChakra(
+      <GalleryGrid files={[folder]} currentTab="src" disabled={false} onFileClick={vi.fn()} onFolderClick={vi.fn()} />
+    );
+
+    // Assert
+    expect(screen.getByText('DCIM').parentElement).toHaveAttribute('aria-disabled', 'false');
+  });
+
+  test('disabled=trueのとき、フォルダカードのaria-disabled属性はtrueになる', () => {
+    // Arrange
+    const folder = createFolderInfo({ name: 'DCIM' });
+
+    // Act
+    renderWithChakra(
+      <GalleryGrid files={[folder]} currentTab="src" disabled onFileClick={vi.fn()} onFolderClick={vi.fn()} />
+    );
+
+    // Assert
+    expect(screen.getByText('DCIM').parentElement).toHaveAttribute('aria-disabled', 'true');
   });
 });

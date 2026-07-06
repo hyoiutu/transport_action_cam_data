@@ -129,4 +129,36 @@ describe('DropZoneに関するテスト', () => {
     // Assert
     expect(onDrop).toHaveBeenCalledWith('/path/to/folder');
   });
+
+  test('disabled=falseのとき、aria-disabled属性はfalseになる', () => {
+    // Arrange & Act
+    const { rootElement } = renderDropZone({ disabled: false });
+
+    // Assert
+    expect(rootElement).toHaveAttribute('aria-disabled', 'false');
+  });
+
+  test('disabled=trueのとき、aria-disabled属性はtrueになる', () => {
+    // Arrange & Act
+    const { rootElement } = renderDropZone({ disabled: true });
+
+    // Assert
+    expect(rootElement).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  test('disabled=falseのとき、カーソルはpointerになる', () => {
+    // Arrange & Act
+    const { rootElement } = renderDropZone({ disabled: false });
+
+    // Assert
+    expect(rootElement).toHaveStyle({ cursor: 'pointer' });
+  });
+
+  test('disabled=trueのとき、カーソルはnot-allowedになる', () => {
+    // Arrange & Act
+    const { rootElement } = renderDropZone({ disabled: true });
+
+    // Assert
+    expect(rootElement).toHaveStyle({ cursor: 'not-allowed' });
+  });
 });
