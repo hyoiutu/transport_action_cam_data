@@ -36,6 +36,7 @@ export const DropZone = ({ id, icon: Icon, onClick, onDrop, disabled }: DropZone
     <Box
       id={id}
       role="group"
+      aria-disabled={disabled}
       data-dragover={isDragOver}
       onClick={onClick}
       onDragOver={handleDragOver}
@@ -48,14 +49,14 @@ export const DropZone = ({ id, icon: Icon, onClick, onDrop, disabled }: DropZone
       paddingX="4"
       textAlign="center"
       bg={isDragOver ? 'overlayMedium' : 'overlaySubtle'}
-      cursor="pointer"
+      cursor={disabled ? 'not-allowed' : 'pointer'}
       transform={isDragOver ? 'scale(0.98)' : undefined}
       transition="all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
       display="flex"
       flexDirection="column"
       alignItems="center"
       gap="3"
-      _hover={{ borderColor: 'brandPrimaryHover', bg: 'brandPrimaryMuted' }}
+      _hover={disabled ? undefined : { borderColor: 'brandPrimaryHover', bg: 'brandPrimaryMuted' }}
     >
       <ChakraIcon boxSize="8" color="textMuted" transition="color 0.3s" _groupHover={{ color: 'brandPrimaryHover' }} />
       <Box as="span" fontSize="xs" color="textMuted" lineHeight="1.5">

@@ -146,6 +146,7 @@ export const App = () => {
             <GalleryGrid
               files={entries}
               currentTab={currentTab}
+              disabled={isCopying}
               onFileClick={setPreviewFile}
               onFolderClick={handleFolderClick}
             />

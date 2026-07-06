@@ -14,6 +14,20 @@
 
 ## 変更履歴
 
+### [2026-07-07] コピー中にフォルダカード・ドロップゾーンの操作が見た目上も無効化されるようにした
+* **修正の動機・概要**:
+  - [Issue #9](https://github.com/hyoiutu/transport_action_cam_data/issues/9)にて、コピー中は`isCopying`によりフォルダカードのクリックやドロップゾーンへのドラッグ＆ドロップが内部でガードされ実行されないにもかかわらず、見た目上は通常時と同じ（ホバーエフェクトが効く、カーソルが`pointer`のまま）であるため、ユーザーが「アプリがフリーズした」または「操作可能」と誤解する可能性があるという報告があった。
+  - TDD（Red-Green-Refactor）に従い、`FolderCard`・`GalleryGrid`・`DropZone`それぞれに対して`disabled`状態を検証する失敗するテスト（`aria-disabled`属性・`cursor`スタイル）を先に作成した後、実装を追加してテストを通過させた。
+* **各ファイルへの影響と変更内容**:
+  * **実装**:
+    * `src/components/FolderCard.tsx`: `disabled: boolean`propを追加。`disabled`時は`aria-disabled`属性をtrueにし、`cursor`を`not-allowed`に、`_hover`スタイル（`translateY`・背景色・枠線色・box-shadowの変化）を無効化する。
+    * `src/components/DropZone.tsx`: 既存の`disabled`propを用いて、`aria-disabled`属性、`cursor`（`not-allowed`/`pointer`の出し分け）、`_hover`スタイル（枠線色・背景色の変化）の無効化を追加。ドラッグ＆ドロップの実処理自体は既存のガードのまま変更なし。
+    * `src/components/GalleryGrid.tsx`: `disabled: boolean`propを追加し、`FolderCard`に伝播させる。
+    * `src/App.tsx`: `GalleryGrid`に`disabled={isCopying}`を渡すよう変更。
+    * `src/components/__tests__/FolderCard.tests.tsx` / `DropZone.tests.tsx` / `GalleryGrid.tests.tsx`: `disabled`状態に応じた`aria-disabled`属性・`cursor`スタイルのテストケースを追加。既存テストは`disabled`propが必須化されたことに伴い明示的に付与するよう更新。
+  * **README.md / 仕様書**: 該当なし（コンポーネント単位の実装詳細であり、README.md・`specs/`配下のいずれにも本UIの無効化状態に関する記載がなく、乖離は発生していないため修正なし）。
+  * `npm run test:unit`（144件全パス）・`npm run typecheck`・`npm run lint`・`npm run test:e2e`（7件全パス、フォルダカードのクリック・ナビゲーションを含む）を実行し、いずれも成功を確認した。
+
 ### [2026-07-06] GitHub MCP Serverのセットアップ方式を`.mcp.json`によるプロジェクトスコープ管理に変更した
 * **修正の動機・概要**:
   - GitHub MCP Serverの利用方法として、リポジトリ直下に`.mcp.json`（プロジェクトスコープの設定ファイル、トークン自体は含まず`${GITHUB_PERSONAL_ACCESS_TOKEN}`という環境変数参照のみを記載）を配置し、チーム全体で共有する方式を採用することになった。これに伴い、README.mdに記載していた`claude mcp add`コマンドによる各自でのローカル登録手順（`local`スコープ）が実態と乖離したため、`.mcp.json`を前提とした手順に修正した。
