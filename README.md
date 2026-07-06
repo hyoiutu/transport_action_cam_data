@@ -95,3 +95,20 @@ AIエージェントが作業中にローカルファイルに変更を加えた
 * **コミット規約 ([commit_rules.md](./commit_rules.md))**: プロジェクトルートにある `commit_rules.md` に従って、テストの実行、コミットメッセージの要約（1行程度）、コミット前のユーザー承認 (Y/N) などを実施します。
 * **注意**: このスキルを通じて `git push` が自動で実行されることは絶対にありません。
 
+### Issue実装スキル (`issue-implement`)
+GitHub Issueの内容をもとに、AIエージェントが人間の都度の指示を介さずに実装・修正を進めるためのカスタムスキルです。
+
+#### 前提: GitHub MCP Serverのセットアップ
+本スキルはAIエージェントがGitHub Issueを直接読み取れるよう、GitHub公式のリモートMCPサーバー（`https://api.githubcopilot.com/mcp/`）を利用します（Dockerでローカルにホストする方式は本プロジェクトでは使用していません）。サーバー定義はリポジトリ直下の [`.mcp.json`](./.mcp.json) にプロジェクトスコープとしてコミット済みのため、`claude mcp add` によるセットアップは不要です。
+
+1. GitHubでPersonal Access Token（Fine-grained tokenまたはClassic token）を発行します。Issueの読み書きを行うため、対象リポジトリに対して最低限 `repo`（プライベートリポジトリの場合）または `public_repo`（パブリックリポジトリの場合）相当のスコープ・権限を付与してください。
+2. 発行したトークンを、環境変数 `GITHUB_PERSONAL_ACCESS_TOKEN` として自分のシェル環境（`~/.zshrc` など）に設定します。`.mcp.json` はこの環境変数を `${GITHUB_PERSONAL_ACCESS_TOKEN}` として参照するのみで、トークン自体は含まれていません。**トークンを直接 `.mcp.json` やその他リポジトリ内のファイルに書き込まないでください。**
+3. 本リポジトリをClaude Codeで開くと、初回のみ `.mcp.json` に定義されたプロジェクトスコープのMCPサーバーを使用するかどうかの承認を求められるので、承認します。
+4. `claude mcp list` を実行し、`github: https://api.githubcopilot.com/mcp/ (HTTP) - ✔ Connected` と表示されれば設定完了です。
+
+* **配置場所**: `.agents/skills/issue-implement/`（実体）。`.claude/skills/issue-implement/` はこのファイルへのシンボリックリンクで、Claude Code からも `/issue-implement` として呼び出せます。
+* **動作ルール**: 起動時に必ず「対象のGitHub Issue番号」「ブランチ名（希望がなければAIが命名）」「派生元ブランチ（デフォルトは現在のブランチ）」をユーザーに確認したうえで実装を開始します。
+* **ブランチ運用規約 ([branch_rules.md](./branch_rules.md))**: 1つのIssueにつき必ず1つの専用ブランチを作成する「1 Issue = 1 Branch」の原則、およびブランチ命名規則（`<type>/issue-<Issue番号>-<内容>`）に従います。
+* **実装ルールの遵守**: 実装時はTDD・コード規約・README/仕様書の同期・CHANGELOG記録など、本プロジェクトの既存ルールをすべて遵守します。
+* **注意**: このスキルを通じて `git push` が自動で実行されることは絶対にありません。コミットは必ず `auto-commit` スキル経由で行います。
+

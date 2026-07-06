@@ -12,3 +12,4 @@
 - 人間からの指摘でコードを修正する場合、rules.mdに新しくルールを追加する
 - git commitはauto-commitスキル（.agents/skills/auto-commit/SKILL.md）を経由してのみ実行し、スキルを介さずに直接git commitを実行してはならない
 - 単体テスト・E2Eテストを作成または実行する場合はtest_rules.mdに記載されたルールに従う
+- GitHub Issueをもとに実装・修正を行う場合はissue-implementスキル（.agents/skills/issue-implement/SKILL.md）を経由し、対象Issue・ブランチ名・派生元ブランチをユーザーに確認したうえで、branch_rules.mdに記載された「1 Issue = 1 Branch」の原則に従ってブランチを作成する

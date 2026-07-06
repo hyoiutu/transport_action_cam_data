@@ -14,6 +14,30 @@
 
 ## 変更履歴
 
+### [2026-07-06] GitHub MCP Serverのセットアップ方式を`.mcp.json`によるプロジェクトスコープ管理に変更した
+* **修正の動機・概要**:
+  - GitHub MCP Serverの利用方法として、リポジトリ直下に`.mcp.json`（プロジェクトスコープの設定ファイル、トークン自体は含まず`${GITHUB_PERSONAL_ACCESS_TOKEN}`という環境変数参照のみを記載）を配置し、チーム全体で共有する方式を採用することになった。これに伴い、README.mdに記載していた`claude mcp add`コマンドによる各自でのローカル登録手順（`local`スコープ）が実態と乖離したため、`.mcp.json`を前提とした手順に修正した。
+* **各ファイルへの影響と変更内容**:
+  * **実装**: `.mcp.json`（新規）を追加。`github`サーバーを`type: http`、`url: https://api.githubcopilot.com/mcp/`、`headers.Authorization: Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}`として定義。
+  * **README.md**: 「前提: GitHub MCP Serverのセットアップ」の手順を、`claude mcp add`によるローカル登録から、`.mcp.json`（コミット済み）を前提とした手順に修正。発行したトークンは`.mcp.json`に書き込まず、環境変数`GITHUB_PERSONAL_ACCESS_TOKEN`として各自のシェル環境に設定すること、初回オープン時にプロジェクトスコープMCPサーバーの利用承認が必要になることを追記。接続確認手順（`claude mcp list`）は変更なし。
+  * **仕様書**: 該当なし（GitHub MCP Serverのセットアップ手順は`specs/`配下の仕様書では扱っていないため修正なし）。
+  * コードの変更を伴わないため、`npm run test:unit`等の実行は不要。
+
+### [2026-07-06] GitHub Issueをもとに実装を進めるissue-implementスキルを追加した
+* **修正の動機・概要**:
+  - [Issue #10](https://github.com/hyoiutu/transport_action_cam_data/issues/10)にて、GitHub Issueの内容を人間が都度読んでプロンプトで指示するより、AIエージェントが直接読んで実装した方が効率的だという要望があった。GitHub MCPサーバーが利用可能になったことを受け、Issueの内容をもとに実装を進めるカスタムスキル`issue-implement`を新規作成した。
+  - Issue #10の要望に基づき、スキル起動時には必ず「対象Issue」「ブランチ名（希望がなければAI命名）」「派生元ブランチ（デフォルトは現在のブランチ）」をAskUserQuestionでユーザーに確認すること、「1 Issue = 1 Branch」の原則を徹底すること、コミットは自動で良いがプッシュは絶対に行わないことをルール化した。
+  - スキル作成前に、ブランチ運用規約（命名規則・派生元・プッシュ禁止等）を`branch_rules.md`として明文化した。ブランチ名の自動命名規則については、既存ブランチ（`feature/migrate_electron`のみ）にIssue番号を含む確立された慣習がなかったため、ユーザーに確認のうえ`<type>/issue-<Issue番号>-<内容>`形式に決定した。
+* **各ファイルへの影響と変更内容**:
+  * **実装**:
+    * `branch_rules.md`（新規）: 「1 Issue = 1 Branch」の原則、ブランチ命名規則、派生元ブランチの決定方法、プッシュ禁止、実装後のコミットはauto-commitスキル経由とすることを規定。
+    * `.agents/skills/issue-implement/SKILL.md`（新規）: Issue一覧・詳細の取得、ユーザーへの確認（AskUserQuestion）、ブランチの用意、既存プロジェクトルールに従った実装、auto-commitスキル経由でのコミット、プッシュ禁止の手順を定義。
+    * `.claude/skills/issue-implement/SKILL.md`（新規）: `.agents/skills/issue-implement/SKILL.md`へのシンボリックリンク（`auto-commit`スキルと同様の配置）。
+    * `AGENTS.md`: GitHub Issueをもとに実装する場合は`issue-implement`スキルを経由し、`branch_rules.md`の「1 Issue = 1 Branch」の原則に従う旨のルールを追加。
+  * **README.md**: 「🤖 AI向けカスタムスキル (Agent Skills)」節に「Issue実装スキル (`issue-implement`)」の説明（配置場所、動作ルール、ブランチ運用規約、実装ルールの遵守、プッシュ禁止）を追記。また、本スキルの前提となるGitHub MCP Server（リモートホスト版、`https://api.githubcopilot.com/mcp/`）のセットアップ手順（Personal Access Tokenの発行、`claude mcp add`によるサーバー登録、`claude mcp list`での接続確認）を追記。Dockerによるローカルホスト方式は使用していないため記載せず。
+  * **仕様書**: `specs/issue_implement_skill_specification.md`（新規）を作成し、`issue-implement`スキルのシステム概要・主要機能要件・ファイル構造・各ファイルの定義を記載。
+  * コードの変更を伴わないため、`npm run test:unit`等の実行は不要。ドキュメント間の相互参照リンク（`branch_rules.md`・`commit_rules.md`等）が正しいことを確認済み。
+
 ### [2026-07-06] ドキュメント内の特定PCの絶対パス記載を修正した
 * **修正の動機・概要**:
   - リポジトリ内に、作業していた特定PC・ユーザー環境に依存したフルパス（`/Users/fujiwalatex/...`）が複数箇所に残っていた。このリポジトリは複数人・複数PCで扱われる可能性があるため、環境依存のパスはリンク切れや誤解の原因になる。ユーザーからの指摘を受け、該当箇所を相対パス・環境非依存の表現に修正し、再発防止のルールをrules.mdに追加した。
